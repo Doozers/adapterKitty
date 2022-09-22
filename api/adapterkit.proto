@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "adapterKitty/proto";
+
+service Service {
+  rpc Adapter(stream AdapterRequest) returns (stream AdapterResponse) {}
+}
+
+
+message AdapterRequest {
+  bytes payload = 1;
+}
+
+message AdapterResponse {
+  bytes payload = 1;
+}
