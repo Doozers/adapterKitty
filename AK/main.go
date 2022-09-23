@@ -1,28 +1,15 @@
-package AK
+package main
 
 import (
-	"fmt"
-	"net"
-
-	"adapterKitty/AK/server"
+	"adapterKitty/pkg/action2"
 	"adapterKitty/proto"
-
-	"google.golang.org/grpc"
 )
 
-func Srv() error {
-	var opts []grpc.ServerOption
-	lis, err := net.Listen("tcp", "127.0.0.1:9314")
-	if err != nil {
-		return err
+func main() {
+	server := &proto.AdapterServ{
+		Mod: action2.Mod,
 	}
-	grpcServer := grpc.NewServer(opts...)
-
-	proto.RegisterServiceServer(grpcServer, &server.Adapter{})
-
-	fmt.Println("Server started")
-	if err := grpcServer.Serve(lis); err != nil {
-		return err
+	if err := Srv(server); err != nil {
+		panic(err)
 	}
-	return nil
 }

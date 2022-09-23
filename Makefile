@@ -1,6 +1,6 @@
 .PHONY: generate
-generate:
-	cd api && protoc --go_out=../proto --go_opt=paths=source_relative --go-grpc_out=../proto --go-grpc_opt=paths=source_relative adapterkit.proto && cd -
+ak.generate:
+	cd api && protoc --go_out=../AK/proto --go_opt=paths=source_relative --go-grpc_out=../AK/proto --go-grpc_opt=paths=source_relative adapterkit.proto && cd -
 
 .PHONY: goconsole.generate
 goconsole.generate:

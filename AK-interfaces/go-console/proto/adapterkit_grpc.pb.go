@@ -18,45 +18,45 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ServiceClient is the client API for Service service.
+// ServClient is the client API for Serv service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ServiceClient interface {
-	Adapter(ctx context.Context, opts ...grpc.CallOption) (Service_AdapterClient, error)
+type ServClient interface {
+	Adapter(ctx context.Context, opts ...grpc.CallOption) (Serv_AdapterClient, error)
 }
 
-type serviceClient struct {
+type servClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewServiceClient(cc grpc.ClientConnInterface) ServiceClient {
-	return &serviceClient{cc}
+func NewServClient(cc grpc.ClientConnInterface) ServClient {
+	return &servClient{cc}
 }
 
-func (c *serviceClient) Adapter(ctx context.Context, opts ...grpc.CallOption) (Service_AdapterClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Service_ServiceDesc.Streams[0], "/Service/Adapter", opts...)
+func (c *servClient) Adapter(ctx context.Context, opts ...grpc.CallOption) (Serv_AdapterClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Serv_ServiceDesc.Streams[0], "/Serv/Adapter", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &serviceAdapterClient{stream}
+	x := &servAdapterClient{stream}
 	return x, nil
 }
 
-type Service_AdapterClient interface {
+type Serv_AdapterClient interface {
 	Send(*AdapterRequest) error
 	Recv() (*AdapterResponse, error)
 	grpc.ClientStream
 }
 
-type serviceAdapterClient struct {
+type servAdapterClient struct {
 	grpc.ClientStream
 }
 
-func (x *serviceAdapterClient) Send(m *AdapterRequest) error {
+func (x *servAdapterClient) Send(m *AdapterRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *serviceAdapterClient) Recv() (*AdapterResponse, error) {
+func (x *servAdapterClient) Recv() (*AdapterResponse, error) {
 	m := new(AdapterResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -64,53 +64,53 @@ func (x *serviceAdapterClient) Recv() (*AdapterResponse, error) {
 	return m, nil
 }
 
-// ServiceServer is the server API for Service service.
-// All implementations must embed UnimplementedServiceServer
+// ServServer is the server API for Serv service.
+// All implementations must embed UnimplementedServServer
 // for forward compatibility
-type ServiceServer interface {
-	Adapter(Service_AdapterServer) error
-	mustEmbedUnimplementedServiceServer()
+type ServServer interface {
+	Adapter(Serv_AdapterServer) error
+	mustEmbedUnimplementedServServer()
 }
 
-// UnimplementedServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedServiceServer struct {
+// UnimplementedServServer must be embedded to have forward compatible implementations.
+type UnimplementedServServer struct {
 }
 
-func (UnimplementedServiceServer) Adapter(Service_AdapterServer) error {
+func (UnimplementedServServer) Adapter(Serv_AdapterServer) error {
 	return status.Errorf(codes.Unimplemented, "method Adapter not implemented")
 }
-func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
+func (UnimplementedServServer) mustEmbedUnimplementedServServer() {}
 
-// UnsafeServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ServiceServer will
+// UnsafeServServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ServServer will
 // result in compilation errors.
-type UnsafeServiceServer interface {
-	mustEmbedUnimplementedServiceServer()
+type UnsafeServServer interface {
+	mustEmbedUnimplementedServServer()
 }
 
-func RegisterServiceServer(s grpc.ServiceRegistrar, srv ServiceServer) {
-	s.RegisterService(&Service_ServiceDesc, srv)
+func RegisterServServer(s grpc.ServiceRegistrar, srv ServServer) {
+	s.RegisterService(&Serv_ServiceDesc, srv)
 }
 
-func _Service_Adapter_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ServiceServer).Adapter(&serviceAdapterServer{stream})
+func _Serv_Adapter_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ServServer).Adapter(&servAdapterServer{stream})
 }
 
-type Service_AdapterServer interface {
+type Serv_AdapterServer interface {
 	Send(*AdapterResponse) error
 	Recv() (*AdapterRequest, error)
 	grpc.ServerStream
 }
 
-type serviceAdapterServer struct {
+type servAdapterServer struct {
 	grpc.ServerStream
 }
 
-func (x *serviceAdapterServer) Send(m *AdapterResponse) error {
+func (x *servAdapterServer) Send(m *AdapterResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *serviceAdapterServer) Recv() (*AdapterRequest, error) {
+func (x *servAdapterServer) Recv() (*AdapterRequest, error) {
 	m := new(AdapterRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -118,17 +118,17 @@ func (x *serviceAdapterServer) Recv() (*AdapterRequest, error) {
 	return m, nil
 }
 
-// Service_ServiceDesc is the grpc.ServiceDesc for Service service.
+// Serv_ServiceDesc is the grpc.ServiceDesc for Serv service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Service_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Service",
-	HandlerType: (*ServiceServer)(nil),
+var Serv_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "Serv",
+	HandlerType: (*ServServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Adapter",
-			Handler:       _Service_Adapter_Handler,
+			Handler:       _Serv_Adapter_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
