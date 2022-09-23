@@ -28,8 +28,12 @@ type service interface {
 }
 
 func main() {
-	o := &CLISvc{
+	/*o := &CLISvc{
 		//Plugin: action2.RunAction2,
+	}*/
+	o := &discordSvc{
+		//Plugin: action2.RunAction2,
+		Token: "OTc3Mjk3ODcxMjY1MjA2Mjky.G7AP2L.LADYO_R5zc6MZOQ0E2asXY2yU7aT9F7c_DWp-0",
 	}
 	if err := expose(o); err != nil {
 		panic(err)
