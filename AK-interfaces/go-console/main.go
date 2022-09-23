@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -11,19 +10,34 @@ import (
 
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
-
 	"google.golang.org/grpc"
+
+	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
+type Exposer int
+
+const (
+	CLI        = 1
+	DiscordBot = 2
+)
+
+type service interface {
+	react(b []byte)
+	listener(client proto.Serv_AdapterClient)
+}
+
 func main() {
-	if err := exposeToCli(); err != nil {
+	o := &CLISvc{
+		//Plugin: action2.RunAction2,
+	}
+	if err := expose(o); err != nil {
 		panic(err)
 	}
 	return
 }
 
-func exposeToCli() error {
+func expose(o service) error {
 	conn, err := grpc.Dial("127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
@@ -33,34 +47,18 @@ func exposeToCli() error {
 	if err != nil {
 		return err
 	}
-	if err := run(adapter); err != nil {
+	if err := run(adapter, o); err != nil {
 		return err
 	}
 	defer conn.Close()
 	return nil
 }
 
-func run(client proto.Serv_AdapterClient) error {
+func run(client proto.Serv_AdapterClient, opt service) error {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	go func() {
-		var input string
-		Reader := bufio.NewReader(os.Stdin)
-		for {
-			fmt.Print(" >> ")
-			input, _ = Reader.ReadString('\n')
-			fmt.Print(input)
-
-			if len(input) > 0 {
-				if err := client.Send(&proto.AdapterRequest{Payload: []byte(input[:len(input)-1])}); err != nil {
-					fmt.Println("Error1: ", err)
-					return
-				}
-			}
-			fmt.Println("---------------------------------------------------------------------------------------------------------------------")
-		}
-	}()
+	go opt.listener(client)
 
 	go func() {
 		for {
@@ -73,7 +71,7 @@ func run(client proto.Serv_AdapterClient) error {
 				fmt.Println("Error2: ", err)
 				return
 			}
-			fmt.Print("SERV ANSWER >> ", string(resp.Payload), "\n >> ")
+			opt.react(resp.Payload)
 		}
 	}()
 

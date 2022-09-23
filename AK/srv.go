@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"net"
 
+	"adapterKitty/pkg/action1"
 	"adapterKitty/proto"
 
 	"google.golang.org/grpc"
 )
 
-func Srv(service *proto.AdapterServ) error {
+func Expose() error {
+	return runGrpcServ(&proto.AdapterServ{Mod: action1.Mod})
+}
+
+func runGrpcServ(service *proto.AdapterServ) error {
 	var opts []grpc.ServerOption
 	lis, err := net.Listen("tcp", "127.0.0.1:9314")
 	if err != nil {

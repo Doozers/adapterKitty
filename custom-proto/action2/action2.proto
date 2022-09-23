@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option go_package = "AK-interfaces/go-console/proto";
+
+
+message Action2Payload {
+    string name = 1;
+    int64 num = 2;
+}

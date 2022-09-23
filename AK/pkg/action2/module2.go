@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"adapterKitty/proto"
+
+	p "github.com/golang/protobuf/proto"
 )
 
 func Mod(s proto.Serv_AdapterServer) error {
@@ -17,7 +19,6 @@ func Mod(s proto.Serv_AdapterServer) error {
 		{"two", 2222},
 		{"three", 3333},
 	}
-	list := []string{"1", "2", "3"}
 
 	for {
 		req, err := s.Recv()
@@ -30,14 +31,24 @@ func Mod(s proto.Serv_AdapterServer) error {
 			return err
 		}
 		num, err := strconv.Atoi(string(req.Payload))
+		typedPayload := &proto.Action2Payload{
+			Name: "zero",
+			Num:  0,
+		}
+		if err != nil || num > 3 || num < 1 {
+			marshalledPayload, err := p.Marshal(typedPayload)
+			if err != nil {
+				return err
+			}
+			s.Send(&proto.AdapterResponse{Payload: marshalledPayload})
+			continue
+		}
+		typedPayload.Name = tab[num-1].Name
+		typedPayload.Num = int64(tab[num-1].Num)
+		marshalledPayload, err := p.Marshal(typedPayload)
 		if err != nil {
-			s.Send(&proto.AdapterResponse{Payload: []byte("Error: " + err.Error() + "\n")})
-			return nil
+			return err
 		}
-		if num > 3 || num < 1 {
-			s.Send(&proto.AdapterResponse{Payload: []byte("Error: number must be 1, 2 or 3\n")})
-			return nil
-		}
-		s.Send(&proto.AdapterResponse{Payload: []byte("You choose " + list[num-1] + " " + tab[num-1].Name + " " + strconv.Itoa(tab[num-1].Num) + "\n")})
+		s.Send(&proto.AdapterResponse{Payload: marshalledPayload})
 	}
 }
