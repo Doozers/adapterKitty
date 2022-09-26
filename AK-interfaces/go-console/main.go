@@ -12,54 +12,36 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
-type grpcType int
-
-const (
-	Uni = 1
-	Bi  = 2
-)
-
-type service interface {
-	react(b []byte)
-	biListener(client proto.AdapterKitService_BiDirectionalAdapterClient)
-	uniListener(ctx context.Context, client proto.AdapterKitServiceClient)
-
-	getType() grpcType
-}
-
 func main() {
-	o := &CLISvc{
-		//Plugin: action2.RunAction2,
-		Type: Bi,
+	o := &services.CLISvc{
+		Type: services.Bi,
 	}
-	/*o := &discordSvc{
-		//Plugin: action2.RunAction2,
-		Token: "OTc3Mjk3ODcxMjY1MjA2Mjky.GKipSp.J03_0MXFOWqQ6IU2iWu9B3wf1ALb6TyEuCuYvk",
-	}*/
+
 	if err := expose(o); err != nil {
 		panic(err)
 	}
 	return
 }
 
-func expose(svc service) error {
+func expose(svc services.Service) error {
 	conn, err := grpc.Dial("127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}
 	client := proto.NewAdapterKitServiceClient(conn)
-	switch svc.getType() {
-	case Bi:
+	switch svc.GetType() {
+	case services.Bi:
 		adapter, err := client.BiDirectionalAdapter(context.Background())
 		if err = runBi(adapter, svc); err != nil {
 			return err
 		}
 		break
-	case Uni:
-		svc.uniListener(context.Background(), client)
+	case services.Uni:
+		svc.UniListener(context.Background(), client)
 		break
 	default:
 		return fmt.Errorf("unknown gRPC type")
@@ -72,26 +54,25 @@ func expose(svc service) error {
 	return nil
 }
 
-func runBi(client proto.AdapterKitService_BiDirectionalAdapterClient, opt service) error {
+func runBi(client proto.AdapterKitService_BiDirectionalAdapterClient, svc services.Service) error {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	go opt.biListener(client)
+	go svc.BiListener(client)
 
-	go func() {
+	go func(client proto.AdapterKitService_BiDirectionalAdapterClient, svc services.Service) {
 		for {
 			resp, err := client.Recv()
 			if err == io.EOF {
-				//fmt.Println("Error2: ", err)
 				return
 			}
 			if err != nil {
 				fmt.Println("Error2: ", err)
 				return
 			}
-			opt.react(resp.Payload)
+			svc.React(resp.Payload)
 		}
-	}()
+	}(client, svc)
 
 	<-c
 	return nil
