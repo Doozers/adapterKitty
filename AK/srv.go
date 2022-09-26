@@ -11,7 +11,7 @@ import (
 )
 
 func Expose() error {
-	return runGrpcServ(&proto.AdapterServ{Mod: action1.Mod})
+	return runGrpcServ(&proto.AdapterServ{BiMod: action1.Mod})
 }
 
 func runGrpcServ(service *proto.AdapterServ) error {
@@ -22,7 +22,7 @@ func runGrpcServ(service *proto.AdapterServ) error {
 	}
 	grpcServer := grpc.NewServer(opts...)
 
-	proto.RegisterServServer(grpcServer, service)
+	proto.RegisterAdapterKitServiceServer(grpcServer, service)
 
 	fmt.Println("Server started on: ", lis.Addr())
 	if err := grpcServer.Serve(lis); err != nil {

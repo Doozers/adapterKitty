@@ -15,60 +15,74 @@ import (
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
-type Exposer int
+type grpcType int
 
 const (
-	CLI        = 1
-	DiscordBot = 2
+	Uni = 1
+	Bi  = 2
 )
 
 type service interface {
 	react(b []byte)
-	listener(client proto.Serv_AdapterClient)
+	biListener(client proto.AdapterKitService_BiDirectionalAdapterClient)
+	uniListener(ctx context.Context, client proto.AdapterKitServiceClient)
+
+	getType() grpcType
 }
 
 func main() {
-	/*o := &CLISvc{
+	o := &CLISvc{
 		//Plugin: action2.RunAction2,
-	}*/
-	o := &discordSvc{
-		//Plugin: action2.RunAction2,
-		Token: "OTc3Mjk3ODcxMjY1MjA2Mjky.G7AP2L.LADYO_R5zc6MZOQ0E2asXY2yU7aT9F7c_DWp-0",
+		Type: Bi,
 	}
+	/*o := &discordSvc{
+		//Plugin: action2.RunAction2,
+		Token: "OTc3Mjk3ODcxMjY1MjA2Mjky.GKipSp.J03_0MXFOWqQ6IU2iWu9B3wf1ALb6TyEuCuYvk",
+	}*/
 	if err := expose(o); err != nil {
 		panic(err)
 	}
 	return
 }
 
-func expose(o service) error {
+func expose(svc service) error {
 	conn, err := grpc.Dial("127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}
-	client := proto.NewServClient(conn)
-	adapter, err := client.Adapter(context.Background())
-	if err != nil {
-		return err
+	client := proto.NewAdapterKitServiceClient(conn)
+	switch svc.getType() {
+	case Bi:
+		adapter, err := client.BiDirectionalAdapter(context.Background())
+		if err = runBi(adapter, svc); err != nil {
+			return err
+		}
+		break
+	case Uni:
+		svc.uniListener(context.Background(), client)
+		break
+	default:
+		return fmt.Errorf("unknown gRPC type")
 	}
-	if err := run(adapter, o); err != nil {
+
+	if err != nil {
 		return err
 	}
 	defer conn.Close()
 	return nil
 }
 
-func run(client proto.Serv_AdapterClient, opt service) error {
+func runBi(client proto.AdapterKitService_BiDirectionalAdapterClient, opt service) error {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	go opt.listener(client)
+	go opt.biListener(client)
 
 	go func() {
 		for {
 			resp, err := client.Recv()
 			if err == io.EOF {
-				fmt.Println("Error2: ", err)
+				//fmt.Println("Error2: ", err)
 				return
 			}
 			if err != nil {

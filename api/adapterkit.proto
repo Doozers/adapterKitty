@@ -1,9 +1,10 @@
 syntax = "proto3";
 
-option go_package = "adapterKitty/AK-interfaces/go-console/proto";
+option go_package = "./";
 
-service Serv {
-  rpc Adapter(stream AdapterRequest) returns (stream AdapterResponse) {}
+service AdapterKitService {
+  rpc BiDirectionalAdapter(stream AdapterRequest) returns (stream AdapterResponse) {}
+  rpc UniDirectionalAdapter(AdapterRequest) returns (AdapterResponse) {}
 }
 
 

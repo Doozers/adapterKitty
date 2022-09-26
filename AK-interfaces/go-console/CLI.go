@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 
@@ -10,11 +11,12 @@ import (
 
 type CLISvc struct {
 	Plugin func([]byte)
+	Type   grpcType
 }
 
-func (opt *CLISvc) react(b []byte) {
-	if opt.Plugin != nil {
-		opt.Plugin(b)
+func (svc *CLISvc) react(b []byte) {
+	if svc.Plugin != nil {
+		svc.Plugin(b)
 		return
 	}
 
@@ -22,7 +24,27 @@ func (opt *CLISvc) react(b []byte) {
 	fmt.Print("LOGS: SERV ANSWER >> ", string(b), "\n\n >> ")
 }
 
-func (opt *CLISvc) listener(client proto.Serv_AdapterClient) {
+func (svc *CLISvc) biListener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
+	var input string
+	Reader := bufio.NewReader(os.Stdin)
+	fmt.Print(" >> ")
+	for {
+		input, _ = Reader.ReadString('\n')
+		fmt.Print(" >> ")
+
+		if len(input) > 1 {
+			if err := client.Send(&proto.AdapterRequest{Payload: []byte(input[:len(input)-1])}); err != nil {
+				fmt.Println("Error1: ", err)
+				return
+			}
+		} else {
+			client.CloseSend()
+			os.Exit(0)
+		}
+	}
+}
+
+func (svc *CLISvc) uniListener(ctx context.Context, client proto.AdapterKitServiceClient) {
 	var input string
 	Reader := bufio.NewReader(os.Stdin)
 	fmt.Print(" >> ")
@@ -31,10 +53,16 @@ func (opt *CLISvc) listener(client proto.Serv_AdapterClient) {
 		fmt.Print(" >> ")
 
 		if len(input) > 0 {
-			if err := client.Send(&proto.AdapterRequest{Payload: []byte(input[:len(input)-1])}); err != nil {
+			resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: []byte(input[:len(input)-1])})
+			if err != nil {
 				fmt.Println("Error1: ", err)
 				return
 			}
+			svc.react(resp.Payload)
 		}
 	}
+}
+
+func (svc *CLISvc) getType() grpcType {
+	return svc.Type
 }

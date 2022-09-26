@@ -14,7 +14,7 @@ type discordSvc struct {
 	dg     *discordgo.Session
 }
 
-func (opt *discordSvc) listener(client proto.Serv_AdapterClient) {
+func (opt *discordSvc) listener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
 	dg, err := discordgo.New("Bot " + opt.Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
@@ -45,6 +45,7 @@ func (opt *discordSvc) listener(client proto.Serv_AdapterClient) {
 	}
 }
 
+// WIP (https://github.com/bwmarrin/discordgo) seems to be broken
 func (opt *discordSvc) react(b []byte) {
 	if opt.Plugin != nil {
 		opt.Plugin(b)
@@ -53,5 +54,5 @@ func (opt *discordSvc) react(b []byte) {
 
 	// default reaction
 	fmt.Print("LOGS: SERV ANSWER >> ", string(b), "\n\n >> ")
-	opt.dg.ChannelMessageSend("", string(b))
+	//opt.dg.ChannelMessageSend("", string(b))
 }

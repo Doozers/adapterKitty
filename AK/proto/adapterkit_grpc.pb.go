@@ -18,45 +18,46 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ServClient is the client API for Serv service.
+// AdapterKitServiceClient is the client API for AdapterKitService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ServClient interface {
-	Adapter(ctx context.Context, opts ...grpc.CallOption) (Serv_AdapterClient, error)
+type AdapterKitServiceClient interface {
+	BiDirectionalAdapter(ctx context.Context, opts ...grpc.CallOption) (AdapterKitService_BiDirectionalAdapterClient, error)
+	UniDirectionalAdapter(ctx context.Context, in *AdapterRequest, opts ...grpc.CallOption) (*AdapterResponse, error)
 }
 
-type servClient struct {
+type adapterKitServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewServClient(cc grpc.ClientConnInterface) ServClient {
-	return &servClient{cc}
+func NewAdapterKitServiceClient(cc grpc.ClientConnInterface) AdapterKitServiceClient {
+	return &adapterKitServiceClient{cc}
 }
 
-func (c *servClient) Adapter(ctx context.Context, opts ...grpc.CallOption) (Serv_AdapterClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Serv_ServiceDesc.Streams[0], "/Serv/Adapter", opts...)
+func (c *adapterKitServiceClient) BiDirectionalAdapter(ctx context.Context, opts ...grpc.CallOption) (AdapterKitService_BiDirectionalAdapterClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AdapterKitService_ServiceDesc.Streams[0], "/AdapterKitService/BiDirectionalAdapter", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &servAdapterClient{stream}
+	x := &adapterKitServiceBiDirectionalAdapterClient{stream}
 	return x, nil
 }
 
-type Serv_AdapterClient interface {
+type AdapterKitService_BiDirectionalAdapterClient interface {
 	Send(*AdapterRequest) error
 	Recv() (*AdapterResponse, error)
 	grpc.ClientStream
 }
 
-type servAdapterClient struct {
+type adapterKitServiceBiDirectionalAdapterClient struct {
 	grpc.ClientStream
 }
 
-func (x *servAdapterClient) Send(m *AdapterRequest) error {
+func (x *adapterKitServiceBiDirectionalAdapterClient) Send(m *AdapterRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *servAdapterClient) Recv() (*AdapterResponse, error) {
+func (x *adapterKitServiceBiDirectionalAdapterClient) Recv() (*AdapterResponse, error) {
 	m := new(AdapterResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -64,53 +65,66 @@ func (x *servAdapterClient) Recv() (*AdapterResponse, error) {
 	return m, nil
 }
 
-// ServServer is the server API for Serv service.
-// All implementations must embed UnimplementedServServer
+func (c *adapterKitServiceClient) UniDirectionalAdapter(ctx context.Context, in *AdapterRequest, opts ...grpc.CallOption) (*AdapterResponse, error) {
+	out := new(AdapterResponse)
+	err := c.cc.Invoke(ctx, "/AdapterKitService/UniDirectionalAdapter", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AdapterKitServiceServer is the server API for AdapterKitService service.
+// All implementations must embed UnimplementedAdapterKitServiceServer
 // for forward compatibility
-type ServServer interface {
-	Adapter(Serv_AdapterServer) error
-	mustEmbedUnimplementedServServer()
+type AdapterKitServiceServer interface {
+	BiDirectionalAdapter(AdapterKitService_BiDirectionalAdapterServer) error
+	UniDirectionalAdapter(context.Context, *AdapterRequest) (*AdapterResponse, error)
+	mustEmbedUnimplementedAdapterKitServiceServer()
 }
 
-// UnimplementedServServer must be embedded to have forward compatible implementations.
-type UnimplementedServServer struct {
+// UnimplementedAdapterKitServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAdapterKitServiceServer struct {
 }
 
-func (UnimplementedServServer) Adapter(Serv_AdapterServer) error {
-	return status.Errorf(codes.Unimplemented, "method Adapter not implemented")
+func (UnimplementedAdapterKitServiceServer) BiDirectionalAdapter(AdapterKitService_BiDirectionalAdapterServer) error {
+	return status.Errorf(codes.Unimplemented, "method BiDirectionalAdapter not implemented")
 }
-func (UnimplementedServServer) mustEmbedUnimplementedServServer() {}
+func (UnimplementedAdapterKitServiceServer) UniDirectionalAdapter(context.Context, *AdapterRequest) (*AdapterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UniDirectionalAdapter not implemented")
+}
+func (UnimplementedAdapterKitServiceServer) mustEmbedUnimplementedAdapterKitServiceServer() {}
 
-// UnsafeServServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ServServer will
+// UnsafeAdapterKitServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AdapterKitServiceServer will
 // result in compilation errors.
-type UnsafeServServer interface {
-	mustEmbedUnimplementedServServer()
+type UnsafeAdapterKitServiceServer interface {
+	mustEmbedUnimplementedAdapterKitServiceServer()
 }
 
-func RegisterServServer(s grpc.ServiceRegistrar, srv ServServer) {
-	s.RegisterService(&Serv_ServiceDesc, srv)
+func RegisterAdapterKitServiceServer(s grpc.ServiceRegistrar, srv AdapterKitServiceServer) {
+	s.RegisterService(&AdapterKitService_ServiceDesc, srv)
 }
 
-func _Serv_Adapter_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ServServer).Adapter(&servAdapterServer{stream})
+func _AdapterKitService_BiDirectionalAdapter_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AdapterKitServiceServer).BiDirectionalAdapter(&adapterKitServiceBiDirectionalAdapterServer{stream})
 }
 
-type Serv_AdapterServer interface {
+type AdapterKitService_BiDirectionalAdapterServer interface {
 	Send(*AdapterResponse) error
 	Recv() (*AdapterRequest, error)
 	grpc.ServerStream
 }
 
-type servAdapterServer struct {
+type adapterKitServiceBiDirectionalAdapterServer struct {
 	grpc.ServerStream
 }
 
-func (x *servAdapterServer) Send(m *AdapterResponse) error {
+func (x *adapterKitServiceBiDirectionalAdapterServer) Send(m *AdapterResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *servAdapterServer) Recv() (*AdapterRequest, error) {
+func (x *adapterKitServiceBiDirectionalAdapterServer) Recv() (*AdapterRequest, error) {
 	m := new(AdapterRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -118,17 +132,40 @@ func (x *servAdapterServer) Recv() (*AdapterRequest, error) {
 	return m, nil
 }
 
-// Serv_ServiceDesc is the grpc.ServiceDesc for Serv service.
+func _AdapterKitService_UniDirectionalAdapter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdapterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdapterKitServiceServer).UniDirectionalAdapter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/AdapterKitService/UniDirectionalAdapter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdapterKitServiceServer).UniDirectionalAdapter(ctx, req.(*AdapterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AdapterKitService_ServiceDesc is the grpc.ServiceDesc for AdapterKitService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Serv_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Serv",
-	HandlerType: (*ServServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+var AdapterKitService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "AdapterKitService",
+	HandlerType: (*AdapterKitServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "UniDirectionalAdapter",
+			Handler:    _AdapterKitService_UniDirectionalAdapter_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Adapter",
-			Handler:       _Serv_Adapter_Handler,
+			StreamName:    "BiDirectionalAdapter",
+			Handler:       _AdapterKitService_BiDirectionalAdapter_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
