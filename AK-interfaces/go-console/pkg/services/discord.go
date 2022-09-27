@@ -20,7 +20,7 @@ func (opt *DiscordSvc) UniListener(ctx context.Context, client proto.AdapterKitS
 	panic("implement me")
 }
 
-func (opt *DiscordSvc) GetType() grpcType {
+func (opt *DiscordSvc) GetType() GrpcType {
 	//TODO implement me
 	panic("implement me")
 }

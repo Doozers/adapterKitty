@@ -1,14 +1,10 @@
-package main
+package server
 
 import (
 	"context"
 	"fmt"
-	"net"
 
-	"adapterKitty/pkg/example"
-	"adapterKitty/proto"
-
-	"google.golang.org/grpc"
+	"github.com/Doozers/adapterKitty/AK/proto"
 )
 
 type AdapterServ struct {
@@ -30,28 +26,4 @@ func (a AdapterServ) UniDirectionalAdapter(ctx context.Context, request *proto.A
 		return nil, fmt.Errorf("log : UniDirectionalAction is nil")
 	}
 	return a.UniAction(ctx, request)
-}
-
-func Expose() error {
-	return runGrpcServ(&AdapterServ{
-		BiAction:  example.ActionBi,
-		UniAction: example.ActionUni,
-	})
-}
-
-func runGrpcServ(service *AdapterServ) error {
-	var opts []grpc.ServerOption
-	lis, err := net.Listen("tcp", "127.0.0.1:9314")
-	if err != nil {
-		return err
-	}
-	grpcServer := grpc.NewServer(opts...)
-
-	proto.RegisterAdapterKitServiceServer(grpcServer, service)
-
-	fmt.Println("Server started on: ", lis.Addr())
-	if err := grpcServer.Serve(lis); err != nil {
-		return err
-	}
-	return nil
 }

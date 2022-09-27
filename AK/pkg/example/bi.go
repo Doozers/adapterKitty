@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"adapterKitty/proto"
+	"github.com/Doozers/adapterKitty/AK/proto"
 )
 
 func ActionBi(s proto.AdapterKitService_BiDirectionalAdapterServer) error {

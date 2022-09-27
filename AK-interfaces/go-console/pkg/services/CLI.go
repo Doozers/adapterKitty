@@ -11,7 +11,7 @@ import (
 
 type CLISvc struct {
 	Plugin func([]byte)
-	Type   grpcType
+	Type   GrpcType
 }
 
 func (svc *CLISvc) React(b []byte) {
@@ -62,6 +62,6 @@ func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServi
 	}
 }
 
-func (svc *CLISvc) GetType() grpcType {
+func (svc *CLISvc) GetType() GrpcType {
 	return svc.Type
 }

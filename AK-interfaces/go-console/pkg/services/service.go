@@ -6,7 +6,7 @@ import (
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
-type grpcType int
+type GrpcType int
 
 const (
 	Uni = 1
@@ -18,5 +18,5 @@ type Service interface {
 	BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient)
 	UniListener(ctx context.Context, client proto.AdapterKitServiceClient)
 
-	GetType() grpcType
+	GetType() GrpcType
 }

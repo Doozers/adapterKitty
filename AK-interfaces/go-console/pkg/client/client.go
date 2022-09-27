@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"context"
@@ -8,27 +8,20 @@ import (
 	"os/signal"
 	"syscall"
 
-	"google.golang.org/grpc/credentials/insecure"
-
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
-func main() {
-	o := &services.CLISvc{
-		Type: services.Bi,
-	}
-
-	if err := expose(o); err != nil {
-		panic(err)
-	}
-	return
+type Opts struct {
+	Addr     string
+	GRPCPort string
 }
 
-func expose(svc services.Service) error {
-	conn, err := grpc.Dial("127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
+func Connect(svc services.Service, opts Opts) error {
+	conn, err := grpc.Dial(fmt.Sprintf("%s%s", opts.Addr, opts.GRPCPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}
