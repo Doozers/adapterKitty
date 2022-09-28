@@ -1,6 +1,7 @@
-package main
+package services
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -8,13 +9,23 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-type discordSvc struct {
+type DiscordSvc struct {
 	Plugin func([]byte)
 	Token  string
 	dg     *discordgo.Session
 }
 
-func (opt *discordSvc) listener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
+func (opt *DiscordSvc) UniListener(ctx context.Context, client proto.AdapterKitServiceClient) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (opt *DiscordSvc) GetType() GrpcType {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (opt *DiscordSvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
 	dg, err := discordgo.New("Bot " + opt.Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
@@ -46,7 +57,7 @@ func (opt *discordSvc) listener(client proto.AdapterKitService_BiDirectionalAdap
 }
 
 // WIP (https://github.com/bwmarrin/discordgo) seems to be broken
-func (opt *discordSvc) react(b []byte) {
+func (opt *DiscordSvc) React(b []byte) {
 	if opt.Plugin != nil {
 		opt.Plugin(b)
 		return

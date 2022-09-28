@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"bufio"
@@ -11,10 +11,10 @@ import (
 
 type CLISvc struct {
 	Plugin func([]byte)
-	Type   grpcType
+	Type   GrpcType
 }
 
-func (svc *CLISvc) react(b []byte) {
+func (svc *CLISvc) React(b []byte) {
 	if svc.Plugin != nil {
 		svc.Plugin(b)
 		return
@@ -24,7 +24,7 @@ func (svc *CLISvc) react(b []byte) {
 	fmt.Print("LOGS: SERV ANSWER >> ", string(b), "\n\n >> ")
 }
 
-func (svc *CLISvc) biListener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
+func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
 	var input string
 	Reader := bufio.NewReader(os.Stdin)
 	fmt.Print(" >> ")
@@ -39,12 +39,11 @@ func (svc *CLISvc) biListener(client proto.AdapterKitService_BiDirectionalAdapte
 			}
 		} else {
 			client.CloseSend()
-			os.Exit(0)
 		}
 	}
 }
 
-func (svc *CLISvc) uniListener(ctx context.Context, client proto.AdapterKitServiceClient) {
+func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServiceClient) {
 	var input string
 	Reader := bufio.NewReader(os.Stdin)
 	fmt.Print(" >> ")
@@ -58,11 +57,11 @@ func (svc *CLISvc) uniListener(ctx context.Context, client proto.AdapterKitServi
 				fmt.Println("Error1: ", err)
 				return
 			}
-			svc.react(resp.Payload)
+			svc.React(resp.Payload)
 		}
 	}
 }
 
-func (svc *CLISvc) getType() grpcType {
+func (svc *CLISvc) GetType() GrpcType {
 	return svc.Type
 }
