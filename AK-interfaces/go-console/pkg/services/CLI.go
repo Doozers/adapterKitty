@@ -11,16 +11,20 @@ import (
 )
 
 type CLISvc struct {
-	FormatPlug func([]byte) []byte
+	FormatPlug func([]byte) ([]byte, error)
 	ReactPlug  func([]byte)
 	Type       GrpcType
 }
 
-func (svc *CLISvc) Format(msg []byte) []byte {
+func (svc *CLISvc) Format(msg []byte) ([]byte, error) {
 	if svc.FormatPlug != nil {
-		return svc.FormatPlug(msg)
+		res, err := svc.FormatPlug(msg)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
 	}
-	return msg
+	return msg, nil
 }
 
 func (svc *CLISvc) React(b []byte) {
@@ -42,7 +46,12 @@ func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapte
 		fmt.Print(" >> ")
 
 		if len(input) > 1 {
-			if err := client.Send(&proto.AdapterRequest{Payload: svc.Format([]byte(input[:len(input)-1]))}); err != nil {
+			res, err := svc.Format([]byte(input[:len(input)-1]))
+			if err != nil {
+				fmt.Println("Error1: ", err)
+				return
+			}
+			if err := client.Send(&proto.AdapterRequest{Payload: res}); err != nil {
 				fmt.Println("Error1: ", err)
 				return
 			}
@@ -61,7 +70,12 @@ func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServi
 		fmt.Print(" >> ")
 
 		if len(input) > 0 {
-			resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: svc.Format([]byte(input[:len(input)-1]))})
+			res, err := svc.Format([]byte(input[:len(input)-1]))
+			if err != nil {
+				fmt.Println("Error1: ", err)
+				return
+			}
+			resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: res})
 			if err != nil {
 				fmt.Println("Error1: ", err)
 				return
@@ -80,7 +94,13 @@ func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServic
 		fmt.Print(" >> ")
 
 		if len(input) > 0 {
-			resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: svc.Format([]byte(input[:len(input)-1]))})
+			res, err := svc.Format([]byte(input[:len(input)-1]))
+			if err != nil {
+				fmt.Println("Error1: ", err)
+				return
+			}
+
+			resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: res})
 			if err != nil {
 				fmt.Println("Error1: ", err)
 				return
@@ -91,7 +111,7 @@ func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServic
 					break
 				}
 				if err != nil {
-					fmt.Println("Error2: ", err)
+					fmt.Println("Error23: ", err)
 					return
 				}
 				svc.React(resp.Payload)
