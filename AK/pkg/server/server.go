@@ -25,6 +25,7 @@ func Expose(opt Opts) error {
 	return runGRPCServers(&AdapterServ{
 		BiAction:  example.ActionBi,
 		UniAction: example.ActionUni,
+		SsAction:  example.SsAction,
 	}, opt)
 }
 

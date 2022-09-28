@@ -5,6 +5,7 @@ option go_package = "./";
 service AdapterKitService {
   rpc BiDirectionalAdapter(stream AdapterRequest) returns (stream AdapterResponse) {}
   rpc UniDirectionalAdapter(AdapterRequest) returns (AdapterResponse) {}
+  rpc ServerStreamingAdapter(AdapterRequest) returns (stream AdapterResponse) {}
 }
 
 
