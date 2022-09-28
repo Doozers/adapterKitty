@@ -36,6 +36,8 @@ func Connect(svc services.Service, opts Opts) error {
 	case services.Uni:
 		svc.UniListener(context.Background(), client)
 		break
+	case services.Ss:
+		svc.SsListener(context.Background(), client)
 	default:
 		return fmt.Errorf("unknown gRPC type")
 	}

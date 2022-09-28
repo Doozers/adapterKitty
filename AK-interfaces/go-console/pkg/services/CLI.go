@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
@@ -58,6 +59,35 @@ func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServi
 				return
 			}
 			svc.React(resp.Payload)
+		}
+	}
+}
+
+func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServiceClient) {
+	var input string
+	Reader := bufio.NewReader(os.Stdin)
+	fmt.Print(" >> ")
+	for {
+		input, _ = Reader.ReadString('\n')
+		fmt.Print(" >> ")
+
+		if len(input) > 0 {
+			resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: []byte(input[:len(input)-1])})
+			if err != nil {
+				fmt.Println("Error1: ", err)
+				return
+			}
+			for {
+				resp, err := resp.Recv()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					fmt.Println("Error2: ", err)
+					return
+				}
+				svc.React(resp.Payload)
+			}
 		}
 	}
 }

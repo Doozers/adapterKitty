@@ -11,12 +11,14 @@ type GrpcType int
 const (
 	Uni = 1
 	Bi  = 2
+	Ss  = 3
 )
 
 type Service interface {
 	React(b []byte)
 	BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient)
 	UniListener(ctx context.Context, client proto.AdapterKitServiceClient)
+	SsListener(ctx context.Context, client proto.AdapterKitServiceClient)
 
 	GetType() GrpcType
 }

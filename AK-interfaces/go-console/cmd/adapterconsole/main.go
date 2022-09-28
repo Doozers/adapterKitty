@@ -17,7 +17,7 @@ func init() {
 
 func main() {
 	svc := &services.CLISvc{
-		Type: services.Bi,
+		Type: services.Ss,
 	}
 
 	if err := client.Connect(svc, opts); err != nil {
