@@ -13,7 +13,7 @@ import (
 type Srv struct {
 	proto.UnimplementedAdapterKitServiceServer
 
-	mutx             *sync.Mutex
+	Mutx             *sync.Mutex
 	connectedClients []chan *proto.Announce
 }
 
@@ -24,15 +24,17 @@ func (s *Srv) BiDirectionalAdapter(server proto.AdapterKitService_BiDirectionalA
 
 func (s *Srv) UniDirectionalAdapter(_ context.Context, req *proto.AdapterRequest) (*proto.AdapterResponse, error) {
 	announce := &proto.Announce{}
+
 	err := pb.Unmarshal(req.Payload, announce)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, stream := range s.connectedClients {
-		stream <- announce
+	err = s.broadcast(announce)
+	if err != nil {
+		return nil, err
 	}
-	return &proto.AdapterResponse{Payload: []byte("message sent")}, nil
+	return &proto.AdapterResponse{Payload: []byte(">>>log: message sent")}, nil
 }
 
 func (s *Srv) ServerStreamingAdapter(req *proto.AdapterRequest, srv proto.AdapterKitService_ServerStreamingAdapterServer) error {
@@ -44,9 +46,14 @@ func (s *Srv) ServerStreamingAdapter(req *proto.AdapterRequest, srv proto.Adapte
 
 	stream := make(chan *proto.Announce, 100)
 
-	s.mutx.Lock()
+	s.Mutx.Lock()
 	s.connectedClients = append(s.connectedClients, stream)
-	s.mutx.Unlock()
+	s.Mutx.Unlock()
+
+	err = s.broadcast(&proto.Announce{Message: "new client connected"})
+	if err != nil {
+		return err
+	}
 
 	for {
 		res, err := pb.Marshal(<-stream)
@@ -57,4 +64,13 @@ func (s *Srv) ServerStreamingAdapter(req *proto.AdapterRequest, srv proto.Adapte
 			return err
 		}
 	}
+}
+
+func (s *Srv) broadcast(announce *proto.Announce) error {
+
+	for _, stream := range s.connectedClients {
+		fmt.Println("log: sent to a peer")
+		stream <- announce
+	}
+	return nil
 }

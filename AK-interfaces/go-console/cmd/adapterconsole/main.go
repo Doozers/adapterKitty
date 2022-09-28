@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 
+	pb "google.golang.org/protobuf/proto"
+
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/client"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
+	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
 var opts = client.Opts{}
@@ -17,9 +20,14 @@ func init() {
 
 func main() {
 	svc := &services.CLISvc{
-		Type: services.Ss,
+		Type: services.Uni,
 		FormatPlug: func(b []byte) ([]byte, error) {
-			return []byte("1" + string(b)), nil
+			announce := &proto.Announce{Message: string(b)}
+			res, err := pb.Marshal(announce)
+			if err != nil {
+				return nil, err
+			}
+			return res, nil
 		},
 	}
 

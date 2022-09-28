@@ -5,8 +5,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"sync"
 
-	"github.com/Doozers/adapterKitty/AK/pkg/example"
+	"github.com/Doozers/adapterKitty/AK/pkg/announcement"
 	"github.com/Doozers/adapterKitty/AK/proto"
 
 	"google.golang.org/grpc"
@@ -22,10 +23,13 @@ type Opts struct {
 }
 
 func Expose(opt Opts) error {
-	return runGRPCServers(&AdapterServ{
+	/*return runGRPCServers(AdapterServ{
 		BiAction:  example.ActionBi,
 		UniAction: example.ActionUni,
 		SsAction:  example.SsAction,
+	}, opt)*/
+	return runGRPCServers(&announcement.Srv{
+		Mutx: &sync.Mutex{},
 	}, opt)
 }
 
