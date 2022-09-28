@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+message ConnectionRequest {
+  bool askToConnect = 1;
+}
+
+message Announce {
+  string message = 1;
+}

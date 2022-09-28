@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/improbable-eng/grpc-web v0.15.0
-	github.com/mwitkow/grpc-proxy v0.0.0-20220126150247-db34e7bfee32
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 )
