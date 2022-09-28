@@ -18,6 +18,9 @@ func init() {
 func main() {
 	svc := &services.CLISvc{
 		Type: services.Ss,
+		FormatPlug: func(b []byte) []byte {
+			return []byte("1" + string(b))
+		},
 	}
 
 	if err := client.Connect(svc, opts); err != nil {

@@ -11,13 +11,21 @@ import (
 )
 
 type CLISvc struct {
-	Plugin func([]byte)
-	Type   GrpcType
+	FormatPlug func([]byte) []byte
+	ReactPlug  func([]byte)
+	Type       GrpcType
+}
+
+func (svc *CLISvc) Format(msg []byte) []byte {
+	if svc.FormatPlug != nil {
+		return svc.FormatPlug(msg)
+	}
+	return msg
 }
 
 func (svc *CLISvc) React(b []byte) {
-	if svc.Plugin != nil {
-		svc.Plugin(b)
+	if svc.ReactPlug != nil {
+		svc.ReactPlug(b)
 		return
 	}
 
@@ -34,7 +42,7 @@ func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapte
 		fmt.Print(" >> ")
 
 		if len(input) > 1 {
-			if err := client.Send(&proto.AdapterRequest{Payload: []byte(input[:len(input)-1])}); err != nil {
+			if err := client.Send(&proto.AdapterRequest{Payload: svc.Format([]byte(input[:len(input)-1]))}); err != nil {
 				fmt.Println("Error1: ", err)
 				return
 			}
@@ -53,7 +61,7 @@ func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServi
 		fmt.Print(" >> ")
 
 		if len(input) > 0 {
-			resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: []byte(input[:len(input)-1])})
+			resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: svc.Format([]byte(input[:len(input)-1]))})
 			if err != nil {
 				fmt.Println("Error1: ", err)
 				return
@@ -72,7 +80,7 @@ func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServic
 		fmt.Print(" >> ")
 
 		if len(input) > 0 {
-			resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: []byte(input[:len(input)-1])})
+			resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: svc.Format([]byte(input[:len(input)-1]))})
 			if err != nil {
 				fmt.Println("Error1: ", err)
 				return
