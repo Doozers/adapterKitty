@@ -1,20 +1,47 @@
-import proto from "./proto/adapterkit_pb";
-
-const {AdapterKitServiceClient} = require('./proto/adapterkit_grpc_web_pb.js');
+import {SsCall, uniCall} from "./proto/proto";
+import {useState} from "react";
 
 function App() {
-    let client = new AdapterKitServiceClient('http://127.0.0.1:9315');
+    let utf8Encode = new TextEncoder();
 
-    function handleOnClick() {
-        let request = new proto.AdapterRequest();
-        client.uniDirectionalAdapter(request, {}, function(err, response) {
+    const [stream, setStream] = useState();
+    const [chat, setChat] = useState([]);
+    // tmp
+
+
+    function handleClick1() {
+        uniCall(utf8Encode.encode("hello")).then((response, err) => {
             if (err) {
+                console.log("I PASS");
                 console.log(err);
-            }  else {
+            } else {
                 console.log(String.fromCharCode(...response.getPayload()));
             }
+        })
+
+    }
+
+    if (stream != null) {
+        stream.on('data', function (response) {
+            setChat(chat => [...chat, String.fromCharCode(...response.getPayload())]);
+            //chat.push(String.fromCharCode(...response.getPayload()));
+        });
+
+        stream.on('status', function (status) {
+            console.log(status);
+        });
+        stream.on('end', function (end) {
+            console.log(end);
         });
     }
+
+    function handleClick2() {
+        setStream(SsCall(utf8Encode.encode("3")));
+        console.log("I PASS");
+    }
+
+    const listItems = chat.map((value) =>
+        <li>{value}</li>);
 
     return (
         <div className="App">
@@ -22,10 +49,11 @@ function App() {
                 <body>
                 selem
                 </body>
-                <button onClick={handleOnClick}>
+                <button onClick={handleClick2}>
                     LE BOUTTON
                 </button>
             </header>
+            <ul>{listItems}</ul>
         </div>
     );
 }

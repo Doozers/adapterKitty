@@ -8,7 +8,7 @@
 // versions:
 // 	protoc-gen-grpc-web v1.3.1
 // 	protoc              v3.20.1
-// source: api/adapterkit.proto
+// source: adapterkit.proto
 
 
 /* eslint-disable */
@@ -131,6 +131,62 @@ proto.AdapterKitServicePromiseClient.prototype.uniDirectionalAdapter =
       request,
       metadata || {},
       methodDescriptor_AdapterKitService_UniDirectionalAdapter);
+};
+
+
+/**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.AdapterRequest,
+ *   !proto.AdapterResponse>}
+ */
+const methodDescriptor_AdapterKitService_ServerStreamingAdapter = new grpc.web.MethodDescriptor(
+  '/AdapterKitService/ServerStreamingAdapter',
+  grpc.web.MethodType.SERVER_STREAMING,
+  proto.AdapterRequest,
+  proto.AdapterResponse,
+  /**
+   * @param {!proto.AdapterRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.AdapterResponse.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.AdapterRequest} request The request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!grpc.web.ClientReadableStream<!proto.AdapterResponse>}
+ *     The XHR Node Readable Stream
+ */
+proto.AdapterKitServiceClient.prototype.serverStreamingAdapter =
+    function(request, metadata) {
+  return this.client_.serverStreaming(this.hostname_ +
+      '/AdapterKitService/ServerStreamingAdapter',
+      request,
+      metadata || {},
+      methodDescriptor_AdapterKitService_ServerStreamingAdapter);
+};
+
+
+/**
+ * @param {!proto.AdapterRequest} request The request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!grpc.web.ClientReadableStream<!proto.AdapterResponse>}
+ *     The XHR Node Readable Stream
+ */
+proto.AdapterKitServicePromiseClient.prototype.serverStreamingAdapter =
+    function(request, metadata) {
+  return this.client_.serverStreaming(this.hostname_ +
+      '/AdapterKitService/ServerStreamingAdapter',
+      request,
+      metadata || {},
+      methodDescriptor_AdapterKitService_ServerStreamingAdapter);
 };
 
 

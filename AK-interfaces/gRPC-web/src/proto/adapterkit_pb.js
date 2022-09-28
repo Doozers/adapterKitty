@@ -1,4 +1,4 @@
-// source: api/adapterkit.proto
+// source: adapterkit.proto
 /**
  * @fileoverview
  * @enhanceable
