@@ -4,9 +4,8 @@ import {useState} from "react";
 function App() {
     let utf8Encode = new TextEncoder();
 
-    const [stream, setStream] = useState();
+    const [stream, setStream] = useState(null);
     const [chat, setChat] = useState([]);
-    // tmp
 
 
     function handleClick1() {
@@ -21,23 +20,21 @@ function App() {
 
     }
 
-    if (stream != null) {
-        stream.on('data', function (response) {
-            setChat(chat => [...chat, String.fromCharCode(...response.getPayload())]);
-            //chat.push(String.fromCharCode(...response.getPayload()));
-        });
-
-        stream.on('status', function (status) {
-            console.log(status);
-        });
-        stream.on('end', function (end) {
-            console.log(end);
-        });
-    }
 
     function handleClick2() {
-        setStream(SsCall(utf8Encode.encode("3")));
-        console.log("I PASS");
+
+        setStream(SsCall(utf8Encode.encode()));
+        if (stream != null) {
+            stream.on('data', function (response) {
+                setChat(chat => [...chat, String.fromCharCode(...response.getPayload())]);
+            });
+            stream.on('status', function (status) {
+                console.log("status: ", status);
+            });
+            stream.on('end', function (end) {
+                console.log("end: ", end);
+            });
+        }
     }
 
     const listItems = chat.map((value) =>
@@ -50,7 +47,7 @@ function App() {
                 selem
                 </body>
                 <button onClick={handleClick2}>
-                    LE BOUTTON
+                    Connect
                 </button>
             </header>
             <ul>{listItems}</ul>

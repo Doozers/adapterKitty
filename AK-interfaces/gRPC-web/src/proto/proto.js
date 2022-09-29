@@ -17,13 +17,12 @@ function uniCall(value) {
     });
 }
 
-function SsCall(value) {
+function SsCall() {
     let sheme = new custom.ConnectionRequest();
     sheme.setAsktoconnect(true);
 
-
     let request = new proto.AdapterRequest();
-    request.setPayload(value);
+    request.setPayload(sheme.serializeBinary());
     return client.serverStreamingAdapter(request, {});
 }
 
