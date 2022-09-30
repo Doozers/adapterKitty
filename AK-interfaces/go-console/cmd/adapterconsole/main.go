@@ -39,6 +39,7 @@ func adapterconsole(args []string) error {
 		Subcommands: []*ffcli.Command{
 			receiver(),
 			sender(),
+			discord(),
 		},
 		Exec: func(_ context.Context, _ []string) error {
 			return flag.ErrHelp
@@ -100,6 +101,39 @@ func sender() *ffcli.Command {
 					}
 					return res, nil
 				},
+			}
+
+			return client.Connect(svc, opts)
+		},
+	}
+}
+
+func discord() *ffcli.Command {
+	return &ffcli.Command{
+		Name:       "discord",
+		ShortUsage: "adapterconsole discord [flags]",
+		ShortHelp:  "Starts the discord adapter",
+		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
+		Exec: func(_ context.Context, _ []string) error {
+			svc := &services.DiscordSvc{
+				FormatPlug: func(b []byte) ([]byte, error) {
+					if string(b) == "connect" {
+						ask := &proto.ConnectionRequest{AskToConnect: true}
+						res, err := pb.Marshal(ask)
+						if err != nil {
+							return nil, err
+						}
+						return res, nil
+					}
+					ask := &proto.ConnectionRequest{AskToConnect: false}
+					res, err := pb.Marshal(ask)
+					if err != nil {
+						return nil, err
+					}
+					return res, nil
+				},
+				Token: "OTc3Mjk3ODcxMjY1MjA2Mjky.Gdukbm.3jJNLAWF1BBHFopbbme-884oc50P-OrTErOB5g",
+				Type:  services.Ss,
 			}
 
 			return client.Connect(svc, opts)
