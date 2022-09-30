@@ -1,6 +1,9 @@
 import {SsCall, uniCall} from "./proto/proto";
 import {useState} from "react";
 
+import custom from "./proto/announcement_pb";
+
+
 function App() {
     let utf8Encode = new TextEncoder();
 
@@ -23,7 +26,10 @@ function App() {
 
     function handleClick2() {
 
-        setStream(SsCall(utf8Encode.encode()));
+        let sheme = new custom.ConnectionRequest();
+        sheme.setAsktoconnect(true);
+
+        setStream(SsCall(sheme.serializeBinary()));
         if (stream != null) {
             stream.on('data', function (response) {
                 setChat(chat => [...chat, String.fromCharCode(...response.getPayload())]);
@@ -44,7 +50,7 @@ function App() {
         <div className="App">
             <header className="App-header">
                 <body>
-                selem
+                    Selem
                 </body>
                 <button onClick={handleClick2}>
                     Connect

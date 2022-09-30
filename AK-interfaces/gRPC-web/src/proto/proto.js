@@ -1,5 +1,4 @@
 import proto from "./adapterkit_pb";
-import custom from "./announcement_pb";
 
 const {AdapterKitServiceClient} = require('./adapterkit_grpc_web_pb.js');
 
@@ -17,12 +16,10 @@ function uniCall(value) {
     });
 }
 
-function SsCall() {
-    let sheme = new custom.ConnectionRequest();
-    sheme.setAsktoconnect(true);
+function SsCall(value) {
 
     let request = new proto.AdapterRequest();
-    request.setPayload(sheme.serializeBinary());
+    request.setPayload(value);
     return client.serverStreamingAdapter(request, {});
 }
 
