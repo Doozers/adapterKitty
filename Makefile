@@ -9,3 +9,7 @@ goconsole.generate:
 .PHONY: custom.generate
 custome.generate:
 	cd custom-proto/action2 && protoc -I=. --go_out=../../AK-interfaces/go-console/proto ./action2.proto && cd -
+
+.PHONY: custom.generate
+custom.generate:
+	cd custom-proto/ && protoc -I=. --go_out=. --js_out=import_style=commonjs:. ./occurrence.proto && cd -

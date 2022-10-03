@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+message wikiRequest {
+  string keyword = 1;
+  string needle = 2;
+}
+
+message wikiResponse {
+  bool error = 1;
+  int32 occurrence = 2;
+}

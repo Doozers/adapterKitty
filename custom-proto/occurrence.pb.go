@@ -4,7 +4,7 @@
 // 	protoc        v3.20.1
 // source: occurrence.proto
 
-package proto
+package __
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

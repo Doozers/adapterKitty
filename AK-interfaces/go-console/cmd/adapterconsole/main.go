@@ -38,6 +38,7 @@ func adapterconsole(args []string) error {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		Subcommands: []*ffcli.Command{
 			cliWiki(),
+			discordWiki(),
 		},
 		Exec: func(_ context.Context, _ []string) error {
 			return flag.ErrHelp
@@ -71,16 +72,16 @@ func cliWiki() *ffcli.Command {
 					}
 					return b, nil
 				},
-				ReactPlug: func(b []byte) {
+				ReactPlug: func(b []byte) (string, error) {
 					f := &proto.WikiResponse{}
 					if err := pb.Unmarshal(b, f); err != nil {
-						fmt.Println("bad format response")
-						return
+						return "", fmt.Errorf("bad format response")
+
 					}
 					if f.GetError() {
-						fmt.Println("internal server error")
+						return "", fmt.Errorf("internal server error")
 					}
-					fmt.Println("srv >> occurrence: ", f.Occurrence)
+					return fmt.Sprintf("srv >> occurrence: %d", f.Occurrence), nil
 				},
 			}
 
@@ -92,7 +93,7 @@ func cliWiki() *ffcli.Command {
 func discordWiki() *ffcli.Command {
 	var token string
 	discordFS := flag.NewFlagSet("discordWiki", flag.ExitOnError)
-	discordFS.StringVar(&token, "token", "0", "discord bot token")
+	discordFS.StringVar(&token, "token", "", "discord bot token")
 
 	return &ffcli.Command{
 		Name:       "discordWiki",
@@ -117,9 +118,19 @@ func discordWiki() *ffcli.Command {
 					}
 					return b, nil
 				},
-				ReactPlug: nil,
-				Token:     token,
-				Type:      services.Uni,
+				ReactPlug: func(b []byte) (string, error) {
+					f := &proto.WikiResponse{}
+					if err := pb.Unmarshal(b, f); err != nil {
+						return "", fmt.Errorf("bad format response")
+
+					}
+					if f.GetError() {
+						return "", fmt.Errorf("internal server error")
+					}
+					return fmt.Sprintf("srv >> occurrence: %d", f.Occurrence), nil
+				},
+				Token: token,
+				Type:  services.Uni,
 			}
 
 			return client.Connect(svc, opts)

@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/Doozers/adapterKitty/AK/pkg/example"
+	"github.com/Doozers/adapterKitty/AK/pkg/occurrence"
 	"github.com/Doozers/adapterKitty/AK/proto"
 
 	"google.golang.org/grpc"
@@ -23,9 +23,7 @@ type Opts struct {
 
 func Expose(opt Opts) error {
 	return runGRPCServers(&AdapterServ{
-		BiAction:  example.ActionBi,
-		UniAction: example.ActionUni,
-		SsAction:  example.SsAction,
+		UniAction: occurrence.WikiRequest,
 	}, opt)
 }
 
