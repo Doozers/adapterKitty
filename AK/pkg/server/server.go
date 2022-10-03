@@ -40,6 +40,7 @@ func runGRPCServers(service *AdapterServ, opts Opts) error {
 
 	fmt.Println("Server started on: ", lis.Addr())
 
+	// expose http server to serve grpc-web requests
 	if opts.ExposeWeb {
 		go func() {
 			log.Fatalln(grpcServer.Serve(lis))

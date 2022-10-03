@@ -18,8 +18,8 @@ func init() {
 func main() {
 	svc := &services.CLISvc{
 		Type: services.Ss,
-		FormatPlug: func(b []byte) []byte {
-			return []byte("1" + string(b))
+		FormatPlug: func(b []byte) ([]byte, error) {
+			return []byte("1" + string(b)), nil
 		},
 	}
 

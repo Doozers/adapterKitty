@@ -7,6 +7,7 @@ import (
 	"github.com/Doozers/adapterKitty/AK/proto"
 )
 
+// ActionBi save request and retrieve it when payload is empty
 func ActionBi(s proto.AdapterKitService_BiDirectionalAdapterServer) error {
 	var keep [][]byte
 	for {

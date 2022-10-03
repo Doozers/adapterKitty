@@ -20,6 +20,7 @@ type Opts struct {
 	GRPCPort string
 }
 
+// Connect to the server and chose the grpc service to use
 func Connect(svc services.Service, opts Opts) error {
 	conn, err := grpc.Dial(fmt.Sprintf("%s%s", opts.Addr, opts.GRPCPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -49,6 +50,7 @@ func Connect(svc services.Service, opts Opts) error {
 	return nil
 }
 
+// runBi runs the bidirectional client-server service
 func runBi(client proto.AdapterKitService_BiDirectionalAdapterClient, svc services.Service) error {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

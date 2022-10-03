@@ -7,6 +7,7 @@ import (
 	"github.com/Doozers/adapterKitty/AK/proto"
 )
 
+// SsAction server streaming action that take a number x and send x requests back
 func SsAction(req *proto.AdapterRequest, server proto.AdapterKitService_ServerStreamingAdapterServer) error {
 	num, err := strconv.Atoi(string(req.Payload))
 	if err != nil {
