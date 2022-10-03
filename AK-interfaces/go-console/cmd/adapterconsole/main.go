@@ -127,7 +127,7 @@ func discordWiki() *ffcli.Command {
 					if f.GetError() {
 						return "", fmt.Errorf("internal server error")
 					}
-					return fmt.Sprintf("srv >> occurrence: %d", f.Occurrence), nil
+					return fmt.Sprintf("occurrence: %d", f.Occurrence), nil
 				},
 				Token: token,
 				Type:  services.Uni,
