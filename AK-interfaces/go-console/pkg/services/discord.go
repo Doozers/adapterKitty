@@ -14,7 +14,7 @@ import (
 
 type DiscordSvc struct {
 	FormatPlug func([]byte) ([]byte, error)
-	ReactPlug  func([]byte)
+	ReactPlug  func([]byte) (string, error)
 
 	Token string
 	dg    *discordgo.Session
@@ -24,23 +24,52 @@ type DiscordSvc struct {
 }
 
 func (svc *DiscordSvc) UniListener(ctx context.Context, client proto.AdapterKitServiceClient) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (svc *DiscordSvc) GetType() GrpcType {
-	return svc.Type
-}
-
-func (svc *DiscordSvc) Format(msg []byte) ([]byte, error) {
-	if svc.FormatPlug != nil {
-		res, err := svc.FormatPlug(msg)
-		if err != nil {
-			return nil, err
-		}
-		return res, nil
+	dg, err := discordgo.New("Bot " + svc.Token)
+	if err != nil {
+		fmt.Println("error creating Discord session,", err)
+		return
 	}
-	return msg, nil
+
+	svc.dg = dg
+	err = svc.dg.Open()
+	if err != nil {
+		fmt.Println("error opening connection,", err)
+		return
+	}
+	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	defer svc.dg.Close()
+
+	svc.dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		if m.Author.ID == s.State.User.ID {
+			return
+		}
+
+		fmt.Println("Message received: ", m.Content)
+		b, err := svc.Format([]byte(m.Content))
+		if err != nil {
+			return
+		}
+		resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: b})
+		if err != nil {
+			fmt.Println("error sending request:", err)
+			return
+		}
+
+		r, err := svc.React(resp.GetPayload())
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		_, err = s.ChannelMessageSendReply(m.ChannelID, r, m.Reference())
+		if err != nil {
+			fmt.Println("error replying", err)
+			return
+		}
+	})
+
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
 }
 
 func (svc *DiscordSvc) SsListener(ctx context.Context, client proto.AdapterKitServiceClient) {
@@ -95,7 +124,16 @@ func (svc *DiscordSvc) SsListener(ctx context.Context, client proto.AdapterKitSe
 				fmt.Println("Error23: ", err)
 				return
 			}
-			svc.React(resp.Payload)
+			r, err := svc.React(resp.Payload)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			_, err = dg.ChannelMessageSend(svc.Chan, r)
+			if err != nil {
+				fmt.Println("error sending message on discord", err)
+				return
+			}
 		}
 	}()
 
@@ -109,18 +147,29 @@ func (svc *DiscordSvc) BiListener(client proto.AdapterKitService_BiDirectionalAd
 
 }
 
-// WIP (https://github.com/bwmarrin/discordgo) seems to be broken
-func (svc *DiscordSvc) React(b []byte) {
+func (svc *DiscordSvc) GetType() GrpcType {
+	return svc.Type
+}
+
+func (svc *DiscordSvc) Format(msg []byte) ([]byte, error) {
+	if svc.FormatPlug != nil {
+		res, err := svc.FormatPlug(msg)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	}
+	return msg, nil
+}
+
+func (svc *DiscordSvc) React(b []byte) (string, error) {
 	if svc.ReactPlug != nil {
-		svc.ReactPlug(b)
-		return
+		res, err := svc.ReactPlug(b)
+		if err != nil {
+			return "", err
+		}
+		return res, nil
 	}
 
-	if svc.Type == Ss {
-		if svc.Chan == "" {
-			fmt.Println("Error: no channel set")
-			return
-		}
-		svc.dg.ChannelMessageSend(svc.Chan, string(b))
-	}
+	return string(b), nil
 }

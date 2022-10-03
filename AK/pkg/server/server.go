@@ -29,7 +29,7 @@ func Expose(opt Opts) error {
 	}, opt)
 }
 
-func runGRPCServers(service *AdapterServ, opts Opts) error {
+func runGRPCServers(service proto.AdapterKitServiceServer, opts Opts) error {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s%s", opts.Addr, opts.GRPCPort))
 	if err != nil {
 		return err

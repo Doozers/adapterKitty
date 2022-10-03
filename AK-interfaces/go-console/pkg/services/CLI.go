@@ -12,7 +12,7 @@ import (
 
 type CLISvc struct {
 	FormatPlug func([]byte) ([]byte, error)
-	ReactPlug  func([]byte)
+	ReactPlug  func([]byte) (string, error)
 	Type       GrpcType
 }
 
@@ -27,14 +27,17 @@ func (svc *CLISvc) Format(msg []byte) ([]byte, error) {
 	return msg, nil
 }
 
-func (svc *CLISvc) React(b []byte) {
+func (svc *CLISvc) React(b []byte) (string, error) {
 	if svc.ReactPlug != nil {
-		svc.ReactPlug(b)
-		return
+		res, err := svc.ReactPlug(b)
+		if err != nil {
+			return "", err
+		}
+		return res, nil
 	}
 
 	// default reaction
-	fmt.Print("LOGS: SERV ANSWER >> ", string(b), "\n\n >> ")
+	return "LOGS: SERV ANSWER >> " + string(b) + "\n\n >> ", nil
 }
 
 func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
@@ -80,7 +83,7 @@ func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServi
 				fmt.Println("Error1: ", err)
 				return
 			}
-			svc.React(resp.Payload)
+			fmt.Println(svc.React(resp.Payload))
 		}
 	}
 }
@@ -114,7 +117,7 @@ func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServic
 					fmt.Println("Error23: ", err)
 					return
 				}
-				svc.React(resp.Payload)
+				fmt.Println(svc.React(resp.Payload))
 			}
 		}
 	}
