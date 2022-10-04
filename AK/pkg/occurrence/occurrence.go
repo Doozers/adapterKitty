@@ -2,6 +2,7 @@ package occurrence
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -21,6 +22,7 @@ func WikiRequest(ctx context.Context, req *proto.AdapterRequest) (*proto.Adapter
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(formattedRequest)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -42,5 +44,6 @@ func WikiRequest(ctx context.Context, req *proto.AdapterRequest) (*proto.Adapter
 		return nil, err
 	}
 
+	fmt.Println("return ->", p)
 	return &proto.AdapterResponse{Payload: b}, nil
 }
