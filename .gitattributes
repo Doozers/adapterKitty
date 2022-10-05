@@ -1,4 +1,3 @@
 # .pb
-*.pb.go linguist-generated merge=ours -diff
-*.pb.gw.go linguist-generated merge=ours -diff
-*.pb.js linguist-generated merge=ours -diff
+AK-interfaces/go-console/proto/*.pb.go linguist-generated merge=ours -diff
+AK-interfaces/gRPC-web/src/proto/*_pb.js linguist-generated merge=ours -diff
