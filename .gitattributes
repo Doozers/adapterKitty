@@ -1,3 +1,8 @@
 # .pb
 AK-interfaces/go-console/proto/*.pb.go linguist-generated=true -diff
 AK-interfaces/gRPC-web/src/proto/*_pb.js linguist-generated=true -diff
+AK-interfaces/gRPC-web/yarn.lock linguist-generated=true -diff
+AK-interfaces/go-console/go.sum linguist-generated=true -diff
+AK-interfaces/gRPC-web/package.json linguist-generated=true -diff
+AK/go.sum linguist-generated=true -diff
+
