@@ -67,9 +67,8 @@ func (s *Srv) ServerStreamingAdapter(req *proto.AdapterRequest, srv proto.Adapte
 }
 
 func (s *Srv) broadcast(announce *proto.Announce) error {
-
+	fmt.Printf("log: sent to %d peer\n", len(s.connectedClients))
 	for _, stream := range s.connectedClients {
-		fmt.Println("log: sent to a peer")
 		stream <- announce
 	}
 	return nil

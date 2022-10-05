@@ -17,7 +17,6 @@ function uniCall(value) {
 }
 
 function SsCall(value) {
-
     let request = new proto.AdapterRequest();
     request.setPayload(value);
     return client.serverStreamingAdapter(request, {});

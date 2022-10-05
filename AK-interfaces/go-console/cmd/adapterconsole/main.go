@@ -109,10 +109,15 @@ func sender() *ffcli.Command {
 }
 
 func discord() *ffcli.Command {
+	var token string
+	discordFS := flag.NewFlagSet("discordWiki", flag.ExitOnError)
+	discordFS.StringVar(&token, "token", "", "discord bot token")
+
 	return &ffcli.Command{
 		Name:       "discord",
 		ShortUsage: "adapterconsole discord [flags]",
 		ShortHelp:  "Starts the discord adapter",
+		FlagSet:    discordFS,
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		Exec: func(_ context.Context, _ []string) error {
 			svc := &services.DiscordSvc{
@@ -132,7 +137,7 @@ func discord() *ffcli.Command {
 					}
 					return res, nil
 				},
-				Token: "OTc3Mjk3ODcxMjY1MjA2Mjky.Gdukbm.3jJNLAWF1BBHFopbbme-884oc50P-OrTErOB5g",
+				Token: token,
 				Type:  services.Ss,
 			}
 
