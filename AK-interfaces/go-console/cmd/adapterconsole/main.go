@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -74,8 +73,8 @@ func receiver() *ffcli.Command {
 					}
 					return res, nil
 				},
-				ReactPlug: func(b []byte) {
-					fmt.Println("msg: ", string(b))
+				ReactPlug: func(b []byte) (string, error) {
+					return "msg: " + string(b), nil
 				},
 			}
 
@@ -121,6 +120,7 @@ func discord() *ffcli.Command {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		Exec: func(_ context.Context, _ []string) error {
 			svc := &services.DiscordSvc{
+				Type: services.Ss,
 				FormatPlug: func(b []byte) ([]byte, error) {
 					if string(b) == "connect" {
 						ask := &proto.ConnectionRequest{AskToConnect: true}
@@ -138,7 +138,6 @@ func discord() *ffcli.Command {
 					return res, nil
 				},
 				Token: token,
-				Type:  services.Ss,
 			}
 
 			return client.Connect(svc, opts)
