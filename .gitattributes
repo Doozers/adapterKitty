@@ -1,0 +1,4 @@
+# .pb
+*.pb.go linguist-generated merge=ours -diff
+*.pb.gw.go linguist-generated merge=ours -diff
+*.pb.js linguist-generated merge=ours -diff
