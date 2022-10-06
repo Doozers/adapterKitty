@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strconv"
 
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/client"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
@@ -18,9 +19,14 @@ func init() {
 
 func main() {
 	svc := &services.CLISvc{
-		Type: services.Uni,
-		FormatPlug: func(b []byte) ([]byte, error) {
-			return b, nil
+		DefaultType: services.Uni,
+		FormatPlug: func(b []byte) ([]byte, services.GrpcType, error) {
+			_, err := strconv.Atoi(string(b))
+			if err == nil {
+				return b, services.Ss, nil
+			}
+
+			return b, services.Uni, nil
 		},
 		ReactPlug: func(bytes []byte) (string, error) {
 			return fmt.Sprintf("bytes: %v\n", bytes), nil

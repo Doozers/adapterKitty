@@ -11,20 +11,21 @@ import (
 )
 
 type CLISvc struct {
-	FormatPlug func([]byte) ([]byte, error)
-	ReactPlug  func([]byte) (string, error)
-	Type       GrpcType
+	FormatPlug  func([]byte) ([]byte, GrpcType, error)
+	ReactPlug   func([]byte) (string, error)
+	DefaultType GrpcType
 }
 
-func (svc *CLISvc) Format(msg []byte) ([]byte, error) {
+func (svc *CLISvc) Format(msg []byte) ([]byte, GrpcType, error) {
 	if svc.FormatPlug != nil {
-		res, err := svc.FormatPlug(msg)
+		res, t, err := svc.FormatPlug(msg)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
-		return res, nil
+		return res, t, nil
 	}
-	return msg, nil
+
+	return msg, svc.DefaultType, nil
 }
 
 func (svc *CLISvc) React(b []byte) (string, error) {
@@ -49,7 +50,7 @@ func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapte
 		fmt.Print(" >> ")
 
 		if len(input) > 1 {
-			res, err := svc.Format([]byte(input[:len(input)-1]))
+			res, _, err := svc.Format([]byte(input[:len(input)-1]))
 			if err != nil {
 				fmt.Println("Error1: ", err)
 				return
@@ -73,22 +74,44 @@ func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServi
 		fmt.Print(" >> ")
 
 		if len(input) > 0 {
-			res, err := svc.Format([]byte(input[:len(input)-1]))
+			res, t, err := svc.Format([]byte(input[:len(input)-1]))
 			if err != nil {
 				fmt.Println("Error1: ", err)
 				return
 			}
-			resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: res})
-			if err != nil {
-				fmt.Println("Error1: ", err)
-				return
+			switch t {
+			case Uni:
+				resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: res})
+				if err != nil {
+					fmt.Println("Error1: ", err)
+					return
+				}
+				fmt.Println(svc.React(resp.Payload))
+			case Ss:
+				resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: res})
+				if err != nil {
+					fmt.Println("Error1: ", err)
+					return
+				}
+				go func() {
+					for {
+						resp, err := resp.Recv()
+						if err == io.EOF {
+							break
+						}
+						if err != nil {
+							fmt.Println("Error23: ", err)
+							return
+						}
+						fmt.Println(svc.React(resp.Payload))
+					}
+				}()
 			}
-			fmt.Println(svc.React(resp.Payload))
 		}
 	}
 }
 
-func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServiceClient) {
+/*func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServiceClient) {
 	var input string
 	Reader := bufio.NewReader(os.Stdin)
 	fmt.Print(" >> ")
@@ -121,8 +144,8 @@ func (svc *CLISvc) SsListener(ctx context.Context, client proto.AdapterKitServic
 			}
 		}
 	}
-}
+}*/
 
 func (svc *CLISvc) GetType() GrpcType {
-	return svc.Type
+	return svc.DefaultType
 }
