@@ -1,14 +1,17 @@
 package utils
 
 import (
-	"github.com/Doozers/adapterKitty/AK/proto"
+	"fmt"
+
 	pb "github.com/golang/protobuf/proto"
 )
 
-func IsProtoType(b []byte, t *proto.Test) bool {
+func IsProtoType(b []byte, t pb.Message) pb.Message {
 	// TODO: try to make this with proto.reflect
-	if pb.Unmarshal(b, t) == nil {
-		return true
+	fmt.Println(string(b))
+	if pb.Unmarshal(b, t) != nil {
+		return nil
 	}
-	return false
+
+	return t
 }
