@@ -7,6 +7,7 @@ import (
 
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/client"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
+	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
 var opts = client.Opts{}
@@ -19,14 +20,14 @@ func init() {
 
 func main() {
 	svc := &services.CLISvc{
-		DefaultType: services.UniSs,
-		FormatPlug: func(b []byte) ([]byte, services.GrpcType, error) {
+		DefaultType: services.Uni,
+		FormatPlug: func(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
 			_, err := strconv.Atoi(string(b))
 			if err == nil {
-				return b, services.Ss, nil
+				return &proto.AdapterRequest{Payload: b}, services.Ss, nil
 			}
 
-			return b, services.UniSs, nil
+			return &proto.AdapterRequest{Payload: b}, services.Uni, nil
 		},
 		ReactPlug: func(bytes []byte) (string, error) {
 			return fmt.Sprintf("bytes: %v\n", bytes), nil
