@@ -3,7 +3,10 @@ syntax = "proto3";
 option go_package = "./";
 
 enum actionType {
-
+  ACTION_UNSPECIFIED = 0;
+  ACTION_OPERATION = 1;
+  ACTION_RESULT = 2;
+  ACTION_PING = 3;
 }
 
 message operation {

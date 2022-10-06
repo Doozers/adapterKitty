@@ -20,6 +20,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ActionType int32
+
+const (
+	ActionType_ACTION_UNSPECIFIED ActionType = 0
+	ActionType_ACTION_OPERATION   ActionType = 1
+	ActionType_ACTION_RESULT      ActionType = 2
+	ActionType_ACTION_PING        ActionType = 3
+)
+
+// Enum value maps for ActionType.
+var (
+	ActionType_name = map[int32]string{
+		0: "ACTION_UNSPECIFIED",
+		1: "ACTION_OPERATION",
+		2: "ACTION_RESULT",
+		3: "ACTION_PING",
+	}
+	ActionType_value = map[string]int32{
+		"ACTION_UNSPECIFIED": 0,
+		"ACTION_OPERATION":   1,
+		"ACTION_RESULT":      2,
+		"ACTION_PING":        3,
+	}
+)
+
+func (x ActionType) Enum() *ActionType {
+	p := new(ActionType)
+	*p = x
+	return p
+}
+
+func (x ActionType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ActionType) Descriptor() protoreflect.EnumDescriptor {
+	return file_toolbox_proto_enumTypes[0].Descriptor()
+}
+
+func (ActionType) Type() protoreflect.EnumType {
+	return &file_toolbox_proto_enumTypes[0]
+}
+
+func (x ActionType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ActionType.Descriptor instead.
+func (ActionType) EnumDescriptor() ([]byte, []int) {
+	return file_toolbox_proto_rawDescGZIP(), []int{0}
+}
+
 type OperationSign int32
 
 const (
@@ -56,11 +108,11 @@ func (x OperationSign) String() string {
 }
 
 func (OperationSign) Descriptor() protoreflect.EnumDescriptor {
-	return file_toolbox_proto_enumTypes[0].Descriptor()
+	return file_toolbox_proto_enumTypes[1].Descriptor()
 }
 
 func (OperationSign) Type() protoreflect.EnumType {
-	return &file_toolbox_proto_enumTypes[0]
+	return &file_toolbox_proto_enumTypes[1]
 }
 
 func (x OperationSign) Number() protoreflect.EnumNumber {
@@ -245,7 +297,13 @@ var file_toolbox_proto_rawDesc = []byte{
 	0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75,
 	0x6c, 0x74, 0x22, 0x20, 0x0a, 0x04, 0x70, 0x69, 0x6e, 0x67, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65,
 	0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73,
-	0x73, 0x61, 0x67, 0x65, 0x42, 0x04, 0x5a, 0x02, 0x2e, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x73, 0x61, 0x67, 0x65, 0x2a, 0x5e, 0x0a, 0x0a, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79,
+	0x70, 0x65, 0x12, 0x16, 0x0a, 0x12, 0x41, 0x43, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x55, 0x4e, 0x53,
+	0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x14, 0x0a, 0x10, 0x41, 0x43,
+	0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4f, 0x50, 0x45, 0x52, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x10, 0x01,
+	0x12, 0x11, 0x0a, 0x0d, 0x41, 0x43, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x52, 0x45, 0x53, 0x55, 0x4c,
+	0x54, 0x10, 0x02, 0x12, 0x0f, 0x0a, 0x0b, 0x41, 0x43, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x50, 0x49,
+	0x4e, 0x47, 0x10, 0x03, 0x42, 0x04, 0x5a, 0x02, 0x2e, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x33,
 }
 
@@ -261,16 +319,17 @@ func file_toolbox_proto_rawDescGZIP() []byte {
 	return file_toolbox_proto_rawDescData
 }
 
-var file_toolbox_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_toolbox_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_toolbox_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_toolbox_proto_goTypes = []interface{}{
-	(OperationSign)(0), // 0: operation.sign
-	(*Operation)(nil),  // 1: operation
-	(*Result)(nil),     // 2: result
-	(*Ping)(nil),       // 3: ping
+	(ActionType)(0),    // 0: actionType
+	(OperationSign)(0), // 1: operation.sign
+	(*Operation)(nil),  // 2: operation
+	(*Result)(nil),     // 3: result
+	(*Ping)(nil),       // 4: ping
 }
 var file_toolbox_proto_depIdxs = []int32{
-	0, // 0: operation.op:type_name -> operation.sign
+	1, // 0: operation.op:type_name -> operation.sign
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -326,7 +385,7 @@ func file_toolbox_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_toolbox_proto_rawDesc,
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
