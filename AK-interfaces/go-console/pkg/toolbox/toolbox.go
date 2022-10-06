@@ -60,9 +60,7 @@ func FormatToolbox(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
 			}, services.Uni, nil
 
 		case "PING":
-			scheme := &proto.Ping{
-				Message: strings.Join(args[2:], " "),
-			}
+			scheme := &proto.Ping{Message: strings.Join(args[2:], " ")}
 
 			var grpcMethod services.GrpcType
 
