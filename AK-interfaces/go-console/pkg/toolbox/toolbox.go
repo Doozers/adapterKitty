@@ -25,9 +25,9 @@ func strToOp(s string) (proto.OperationSign, error) {
 	return 0, fmt.Errorf("unknown operation")
 }
 
-func FormatToolbox(b []byte) ([]byte, services.GrpcType, error) {
+func FormatToolbox(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
 	args := strings.Split(string(b), " ")
-	if len(args) == 3 {
+	if len(args) >= 3 {
 		switch args[0] {
 		case "ADD", "SUB", "MUL", "DIV":
 			nb1, err := strconv.Atoi(args[1])
@@ -54,11 +54,14 @@ func FormatToolbox(b []byte) ([]byte, services.GrpcType, error) {
 				return nil, 0, err
 			}
 
-			return serialized, services.Uni, nil
+			return &proto.AdapterRequest{
+				Payload: serialized,
+				Id:      int32(proto.ActionType_ACTION_OPERATION),
+			}, services.Uni, nil
 
 		case "PING":
 			scheme := &proto.Ping{
-				Message: args[2],
+				Message: strings.Join(args[2:], " "),
 			}
 
 			var grpcMethod services.GrpcType
@@ -77,11 +80,14 @@ func FormatToolbox(b []byte) ([]byte, services.GrpcType, error) {
 				return nil, 0, err
 			}
 
-			return serialized, grpcMethod, nil
+			return &proto.AdapterRequest{
+				Payload: serialized,
+				Id:      int32(proto.ActionType_ACTION_PING),
+			}, grpcMethod, nil
 		}
 	}
 
-	return b, services.Uni, nil
+	return &proto.AdapterRequest{Payload: b}, services.Uni, nil
 }
 
 func ReactToolbox(b []byte) (string, error) {
