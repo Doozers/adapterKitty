@@ -9,8 +9,9 @@ import (
 type GrpcType int
 
 const (
-	UniSs = 1
-	Bi    = 2
+	Uni = 1
+	Ss  = 2
+	Bi  = 3
 )
 
 type Service interface {

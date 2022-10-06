@@ -34,7 +34,7 @@ func Connect(svc services.Service, opts Opts) error {
 			return err
 		}
 		break
-	case services.UniSs:
+	case services.Ss, services.Uni:
 		svc.UniSsListener(context.Background(), client)
 		break
 	default:

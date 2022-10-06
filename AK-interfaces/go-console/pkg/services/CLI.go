@@ -79,18 +79,19 @@ func (svc *CLISvc) UniSsListener(ctx context.Context, client proto.AdapterKitSer
 				fmt.Println("Error1: ", err)
 				return
 			}
+
 			switch t {
-			case UniSs:
+			case Uni:
 				resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: res})
 				if err != nil {
-					fmt.Println("Error1: ", err)
+					fmt.Println("Error1 Uni: ", err)
 					return
 				}
 				fmt.Println(svc.React(resp.Payload))
 			case Ss:
 				resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: res})
 				if err != nil {
-					fmt.Println("Error1: ", err)
+					fmt.Println("Error1 Ss: ", err)
 					return
 				}
 				go func() {
