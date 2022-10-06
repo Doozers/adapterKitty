@@ -65,7 +65,7 @@ func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapte
 	}
 }
 
-func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServiceClient) {
+func (svc *CLISvc) UniSsListener(ctx context.Context, client proto.AdapterKitServiceClient) {
 	var input string
 	Reader := bufio.NewReader(os.Stdin)
 	fmt.Print(" >> ")
@@ -80,7 +80,7 @@ func (svc *CLISvc) UniListener(ctx context.Context, client proto.AdapterKitServi
 				return
 			}
 			switch t {
-			case Uni:
+			case UniSs:
 				resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: res})
 				if err != nil {
 					fmt.Println("Error1: ", err)

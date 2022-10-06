@@ -19,14 +19,14 @@ func init() {
 
 func main() {
 	svc := &services.CLISvc{
-		DefaultType: services.Uni,
+		DefaultType: services.UniSs,
 		FormatPlug: func(b []byte) ([]byte, services.GrpcType, error) {
 			_, err := strconv.Atoi(string(b))
 			if err == nil {
 				return b, services.Ss, nil
 			}
 
-			return b, services.Uni, nil
+			return b, services.UniSs, nil
 		},
 		ReactPlug: func(bytes []byte) (string, error) {
 			return fmt.Sprintf("bytes: %v\n", bytes), nil
