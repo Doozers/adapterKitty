@@ -11,8 +11,10 @@ service AdapterKitService {
 
 message AdapterRequest {
   bytes payload = 1;
+  int32 id = 2;
 }
 
 message AdapterResponse {
   bytes payload = 1;
+  int32 id = 2;
 }
