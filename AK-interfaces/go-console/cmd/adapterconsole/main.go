@@ -2,9 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
-	"strconv"
 
 	"go.uber.org/zap"
 	"moul.io/zapconfig"
