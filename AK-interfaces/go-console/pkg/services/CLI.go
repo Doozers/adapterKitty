@@ -11,12 +11,12 @@ import (
 )
 
 type CLISvc struct {
-	FormatPlug  func([]byte) ([]byte, GrpcType, error)
+	FormatPlug  func([]byte) (*proto.AdapterRequest, GrpcType, error)
 	ReactPlug   func([]byte) (string, error)
 	DefaultType GrpcType
 }
 
-func (svc *CLISvc) Format(msg []byte) ([]byte, GrpcType, error) {
+func (svc *CLISvc) Format(msg []byte) (*proto.AdapterRequest, GrpcType, error) {
 	if svc.FormatPlug != nil {
 		res, t, err := svc.FormatPlug(msg)
 		if err != nil {
@@ -25,7 +25,7 @@ func (svc *CLISvc) Format(msg []byte) ([]byte, GrpcType, error) {
 		return res, t, nil
 	}
 
-	return msg, svc.DefaultType, nil
+	return &proto.AdapterRequest{Payload: msg}, svc.DefaultType, nil
 }
 
 func (svc *CLISvc) React(b []byte) (string, error) {
@@ -41,6 +41,7 @@ func (svc *CLISvc) React(b []byte) (string, error) {
 	return "LOGS: SERV ANSWER >> " + string(b) + "\n\n >> ", nil
 }
 
+// Deprecated
 func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient) {
 	var input string
 	Reader := bufio.NewReader(os.Stdin)
@@ -55,7 +56,7 @@ func (svc *CLISvc) BiListener(client proto.AdapterKitService_BiDirectionalAdapte
 				fmt.Println("Error1: ", err)
 				return
 			}
-			if err := client.Send(&proto.AdapterRequest{Payload: res}); err != nil {
+			if err := client.Send(res); err != nil {
 				fmt.Println("Error1: ", err)
 				return
 			}
@@ -82,14 +83,14 @@ func (svc *CLISvc) UniSsListener(ctx context.Context, client proto.AdapterKitSer
 
 			switch t {
 			case Uni:
-				resp, err := client.UniDirectionalAdapter(ctx, &proto.AdapterRequest{Payload: res})
+				resp, err := client.UniDirectionalAdapter(ctx, res)
 				if err != nil {
 					fmt.Println("Error1 Uni: ", err)
 					return
 				}
 				fmt.Println(svc.React(resp.Payload))
 			case Ss:
-				resp, err := client.ServerStreamingAdapter(ctx, &proto.AdapterRequest{Payload: res})
+				resp, err := client.ServerStreamingAdapter(ctx, res)
 				if err != nil {
 					fmt.Println("Error1 Ss: ", err)
 					return

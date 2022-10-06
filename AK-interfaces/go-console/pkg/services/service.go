@@ -15,7 +15,7 @@ const (
 )
 
 type Service interface {
-	Format(msg []byte) ([]byte, GrpcType, error)
+	Format(msg []byte) (*proto.AdapterRequest, GrpcType, error)
 	React(b []byte) (string, error)
 	BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient)
 	UniSsListener(ctx context.Context, client proto.AdapterKitServiceClient)
