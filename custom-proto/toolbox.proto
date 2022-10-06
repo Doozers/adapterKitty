@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+enum actionType {
+
+}
+
+message operation {
+  enum sign {
+    PLUS = 0;
+    MINUS = 1;
+    DIVIDE = 2;
+    MULTIPLY = 3;
+  }
+  sign op = 1;
+
+  int32 a = 2;
+  int32 b = 3;
+}
+
+message result {
+  int32 result = 1;
+}
+
+message ping {
+  string message = 1;
+}
