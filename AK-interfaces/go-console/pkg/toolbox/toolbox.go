@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
+	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/utils"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
-	"github.com/Doozers/adapterKitty/AK/pkg/utils"
 	pb "github.com/golang/protobuf/proto"
 )
 
@@ -25,77 +25,133 @@ func strToOp(s string) (proto.OperationSign, error) {
 	return 0, fmt.Errorf("unknown operation")
 }
 
+func operation(args []string) (*proto.AdapterRequest, error) {
+	nb1, err := strconv.Atoi(args[1])
+	if err != nil {
+		return nil, err
+	}
+	nb2, err := strconv.Atoi(args[2])
+	if err != nil {
+		return nil, err
+	}
+
+	sign, err := strToOp(args[0])
+	if err != nil {
+		return nil, err
+	}
+
+	scheme := &proto.Operation{
+		Op: sign,
+		A:  int32(nb1),
+		B:  int32(nb2),
+	}
+	serialized, err := pb.Marshal(scheme)
+	if err != nil {
+		return nil, err
+	}
+	return &proto.AdapterRequest{
+		Payload: serialized,
+		Id:      int32(proto.ActionType_ACTION_OPERATION),
+	}, nil
+}
+
+func ping(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+	scheme := &proto.Ping{Message: strings.Join(args[2:], " ")}
+
+	var grpcMethod services.GrpcType
+
+	switch args[1] {
+	case "REPEAT":
+		grpcMethod = services.Ss
+	case "ONCE":
+		grpcMethod = services.Uni
+	default:
+		return nil, 0, fmt.Errorf("unknown ping method")
+	}
+
+	serialized, err := pb.Marshal(scheme)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return &proto.AdapterRequest{
+		Payload: serialized,
+		Id:      int32(proto.ActionType_ACTION_PING),
+	}, grpcMethod, nil
+}
+
+func errorFunc(args []string) (*proto.AdapterRequest, error) {
+	var errorType proto.ErrErrorType
+	if len(args) > 1 && args[1] == "PANIC" {
+		errorType = proto.Err_PANIC
+	} else {
+		errorType = proto.Err_ERROR
+	}
+	scheme := &proto.Err{Error: errorType}
+
+	serialized, err := pb.Marshal(scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.AdapterRequest{
+		Payload: serialized,
+		Id:      int32(proto.ActionType_ACTION_ERROR),
+	}, nil
+}
+
 func FormatToolbox(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
 	args := strings.Split(string(b), " ")
-	if len(args) >= 3 {
-		switch args[0] {
-		case "ADD", "SUB", "MUL", "DIV":
-			nb1, err := strconv.Atoi(args[1])
-			if err != nil {
-				return nil, 0, err
-			}
-			nb2, err := strconv.Atoi(args[2])
-			if err != nil {
-				return nil, 0, err
-			}
-
-			sign, err := strToOp(args[0])
-			if err != nil {
-				return nil, 0, err
-			}
-
-			scheme := &proto.Operation{
-				Op: sign,
-				A:  int32(nb1),
-				B:  int32(nb2),
-			}
-			serialized, err := pb.Marshal(scheme)
-			if err != nil {
-				return nil, 0, err
-			}
-
-			return &proto.AdapterRequest{
-				Payload: serialized,
-				Id:      int32(proto.ActionType_ACTION_OPERATION),
-			}, services.Uni, nil
-
-		case "PING":
-			scheme := &proto.Ping{Message: strings.Join(args[2:], " ")}
-
-			var grpcMethod services.GrpcType
-
-			switch args[1] {
-			case "REPEAT":
-				grpcMethod = services.Ss
-			case "ONCE":
-				grpcMethod = services.Uni
-			default:
-				return nil, 0, fmt.Errorf("unknown ping method")
-			}
-
-			serialized, err := pb.Marshal(scheme)
-			if err != nil {
-				return nil, 0, err
-			}
-
-			return &proto.AdapterRequest{
-				Payload: serialized,
-				Id:      int32(proto.ActionType_ACTION_PING),
-			}, grpcMethod, nil
+	switch args[0] {
+	case "ADD", "SUB", "MUL", "DIV":
+		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 3, Max: 3}) {
+			return nil, 0, fmt.Errorf("invalid args")
 		}
+
+		res, err := operation(args)
+		if err != nil {
+			return nil, 0, err
+		}
+		return res, services.Uni, nil
+
+	case "PING":
+		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 3}) {
+			return nil, 0, fmt.Errorf("invalid args")
+		}
+
+		res, grpcMethod, err := ping(args)
+		if err != nil {
+			return nil, 0, err
+		}
+		return res, grpcMethod, nil
+
+	case "ERROR":
+		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 1}) {
+			return nil, 0, fmt.Errorf("invalid args")
+		}
+
+		res, err := errorFunc(args)
+		if err != nil {
+			return nil, 0, err
+		}
+		return res, services.Uni, nil
 	}
 
 	return &proto.AdapterRequest{Payload: b}, services.Uni, nil
 }
 
-func ReactToolbox(b []byte) (string, error) {
+func ReactToolbox(b []byte, t proto.ActionType) (string, error) {
 	if len(b) == 0 {
 		return "NO DATA", nil
 	}
-	if body := utils.IsProtoType(b, &proto.Result{}); body != nil {
-		p := body.(*proto.Result)
+	if t == proto.ActionType_ACTION_RESULT {
+		res := &proto.Result{}
+		err := pb.Unmarshal(b, res)
+		if err != nil {
+			return "", err
+		}
 
-		return fmt.Sprintf("RESULT: %d\n", p.Result), nil
+		return fmt.Sprintf("RESULT: %d\n", res.Result), nil
 	}
 	return string(b), nil
 }
