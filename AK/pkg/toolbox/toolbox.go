@@ -3,6 +3,8 @@ package toolbox
 import (
 	"context"
 	"fmt"
+	"io"
+	"math/rand"
 	"time"
 
 	"github.com/Doozers/adapterKitty/AK/proto"
@@ -33,7 +35,7 @@ func errorFunc(e proto.ErrErrorType) (*proto.AdapterResponse, error) {
 	}
 }
 
-func Uni(ctx context.Context, req *proto.AdapterRequest) (*proto.AdapterResponse, error) {
+func Uni(_ context.Context, req *proto.AdapterRequest) (*proto.AdapterResponse, error) {
 	switch req.Id {
 	case int32(proto.ActionType_ACTION_OPERATION):
 		p := &proto.Operation{}
@@ -68,6 +70,21 @@ func Uni(ctx context.Context, req *proto.AdapterRequest) (*proto.AdapterResponse
 
 		return errorFunc(p.Error)
 
+	case int32(proto.ActionType_ACTION_RANDOM):
+		scheme := &proto.Result{Result: rand.Int31n(424242)}
+		serialized, err := pb.Marshal(scheme)
+		if err != nil {
+			return nil, err
+		}
+
+		return &proto.AdapterResponse{
+			Payload: serialized,
+			Id:      int32(proto.ActionType_ACTION_RESULT),
+		}, nil
+
+	case int32(proto.ActionType_ACTION_NORETURN):
+		return nil, nil
+
 	default:
 		return nil, fmt.Errorf("unknown request")
 	}
@@ -92,5 +109,36 @@ func Ss(req *proto.AdapterRequest, server proto.AdapterKitService_ServerStreamin
 
 	default:
 		return fmt.Errorf("unknown request")
+	}
+}
+
+func Bi(s proto.AdapterKitService_BiDirectionalAdapterServer) error {
+	var count int
+	for {
+		req, err := s.Recv()
+		if err == io.EOF {
+			fmt.Println("EOF")
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		switch req.Id {
+		case int32(proto.ActionType_ACTION_STR):
+			p := &proto.Str{}
+			if err := pb.Unmarshal(req.Payload, p); err != nil {
+				return err
+			}
+
+			err := s.Send(&proto.AdapterResponse{Payload: []byte(fmt.Sprintf("%s -> is the number %d", p.Msg, count))})
+			if err != nil {
+				return err
+			}
+			count++
+
+		default:
+			return fmt.Errorf("unknown request")
+		}
 	}
 }
