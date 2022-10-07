@@ -16,10 +16,6 @@ const (
 
 type Service interface {
 	Format(msg []byte) (*proto.AdapterRequest, GrpcType, error)
-	React(b []byte, a proto.ActionType) (string, error)
-	BiListener(client proto.AdapterKitService_BiDirectionalAdapterClient)
-	UniSsListener(ctx context.Context, client proto.AdapterKitServiceClient)
-	//SsListener(ctx context.Context, client proto.AdapterKitServiceClient)
-
-	GetType() GrpcType
+	React(b []byte, a int32) (string, error)
+	Listener(ctx context.Context, client proto.AdapterKitServiceClient)
 }

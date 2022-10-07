@@ -22,6 +22,13 @@ func main() {
 	svc := &services.CLISvc{
 		DefaultType: services.Uni,
 		FormatPlug: func(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
+			if len(b) >= 3 && string(b[:3]) == "bi " {
+				if string(b) == "bi " {
+					return nil, services.Bi, nil
+				}
+				return &proto.AdapterRequest{Payload: b[3:]}, services.Bi, nil
+			}
+
 			_, err := strconv.Atoi(string(b))
 			if err == nil {
 				return &proto.AdapterRequest{Payload: b}, services.Ss, nil
@@ -29,8 +36,8 @@ func main() {
 
 			return &proto.AdapterRequest{Payload: b}, services.Uni, nil
 		},
-		ReactPlug: func(bytes []byte) (string, error) {
-			return fmt.Sprintf("bytes: %v\n", bytes), nil
+		ReactPlug: func(b []byte, _ int32) (string, error) {
+			return fmt.Sprintf("server sent: %s\n", b), nil
 		},
 	}
 

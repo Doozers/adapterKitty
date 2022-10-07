@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Doozers/adapterKitty/AK/pkg/example"
 	"github.com/Doozers/adapterKitty/AK/pkg/server"
 
 	"flag"
@@ -17,7 +18,11 @@ func init() {
 }
 
 func main() {
-	if err := server.Expose(opts); err != nil {
+	if err := server.RunGRPCServers(&server.AdapterServ{
+		BiAction:  example.ActionBi,
+		UniAction: example.ActionUni,
+		SsAction:  example.SsAction,
+	}, opts); err != nil {
 		panic(err)
 	}
 }

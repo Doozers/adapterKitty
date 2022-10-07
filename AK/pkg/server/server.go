@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/Doozers/adapterKitty/AK/pkg/example"
 	"github.com/Doozers/adapterKitty/AK/proto"
 
 	"google.golang.org/grpc"
@@ -21,15 +20,7 @@ type Opts struct {
 	HTTPPort  string
 }
 
-func Expose(opt Opts) error {
-	return runGRPCServers(&AdapterServ{
-		BiAction:  example.ActionBi,
-		UniAction: example.ActionUni,
-		SsAction:  example.SsAction,
-	}, opt)
-}
-
-func runGRPCServers(service proto.AdapterKitServiceServer, opts Opts) error {
+func RunGRPCServers(service proto.AdapterKitServiceServer, opts Opts) error {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s%s", opts.Addr, opts.GRPCPort))
 	if err != nil {
 		return err
