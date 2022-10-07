@@ -100,8 +100,26 @@ func errorFunc(args []string) (*proto.AdapterRequest, error) {
 	}, nil
 }
 
+func strFunc(args []string) (*proto.AdapterRequest, error) {
+	if len(args) < 2 {
+		return nil, nil
+	}
+	scheme := &proto.Str{Msg: strings.Join(args[1:], " ")}
+
+	serialized, err := pb.Marshal(scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.AdapterRequest{
+		Payload: serialized,
+		Id:      int32(proto.ActionType_ACTION_STR),
+	}, nil
+}
+
 func FormatToolbox(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
-	args := strings.Split(string(b), " ")
+	args := strings.Split(strings.TrimSpace(string(b)), " ")
+
 	switch args[0] {
 	case "ADD", "SUB", "MUL", "DIV":
 		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 3, Max: 3}) {
@@ -135,12 +153,44 @@ func FormatToolbox(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
 			return nil, 0, err
 		}
 		return res, services.Uni, nil
+
+	case "BI":
+		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 1}) {
+			return nil, 0, fmt.Errorf("invalid args")
+		}
+
+		res, err := strFunc(args)
+		if err != nil {
+			return nil, 0, err
+		}
+		return res, services.Bi, nil
+
+	case "DOUBLE":
+		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 2, Max: 2}) {
+			return nil, 0, fmt.Errorf("invalid args")
+		}
+
+		res, err := operation([]string{"MUL", args[1], "2"})
+		if err != nil {
+			return nil, 0, err
+		}
+		return res, services.Uni, nil
+
+	case "RAND":
+		return &proto.AdapterRequest{Id: int32(proto.ActionType_ACTION_RANDOM)}, services.Uni, nil
+
+	case "NORETURN":
+		return &proto.AdapterRequest{Id: int32(proto.ActionType_ACTION_NORETURN)}, services.Uni, nil
+
+	default:
+		return &proto.AdapterRequest{Payload: b}, services.Uni, nil
 	}
 
-	return &proto.AdapterRequest{Payload: b}, services.Uni, nil
 }
 
-func ReactToolbox(b []byte, t proto.ActionType) (string, error) {
+func ReactToolbox(b []byte, T int32) (string, error) {
+	t := proto.ActionType(T)
+
 	if len(b) == 0 {
 		return "NO DATA", nil
 	}

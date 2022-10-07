@@ -7,8 +7,8 @@ import (
 	"go.uber.org/zap"
 	"moul.io/zapconfig"
 
-	"github.com/Doozers/adapterKitty/AK/pkg/example"
 	"github.com/Doozers/adapterKitty/AK/pkg/server"
+	"github.com/Doozers/adapterKitty/AK/pkg/toolbox"
 )
 
 var opts = server.Opts{}
@@ -29,9 +29,9 @@ func main() {
 	}
 
 	if err := server.RunGRPCServers(&server.AdapterServ{
-		BiAction:  example.ActionBi,
-		UniAction: example.ActionUni,
-		SsAction:  example.SsAction,
+		UniAction: toolbox.Uni,
+		SsAction:  toolbox.Ss,
+		BiAction:  toolbox.Bi,
 		Logger:    logger,
 	}, opts); err != nil {
 		panic(err)
