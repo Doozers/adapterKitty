@@ -7,6 +7,7 @@ enum actionType {
   ACTION_OPERATION = 1;
   ACTION_RESULT = 2;
   ACTION_PING = 3;
+  ACTION_ERROR = 4;
 }
 
 message operation {
@@ -28,4 +29,13 @@ message result {
 
 message ping {
   string message = 1;
+}
+
+message Err {
+  enum errorType {
+    ERROR = 0;
+    PANIC = 1;
+  }
+
+  errorType error = 1;
 }

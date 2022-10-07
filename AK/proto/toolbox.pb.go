@@ -27,6 +27,7 @@ const (
 	ActionType_ACTION_OPERATION   ActionType = 1
 	ActionType_ACTION_RESULT      ActionType = 2
 	ActionType_ACTION_PING        ActionType = 3
+	ActionType_ACTION_ERROR       ActionType = 4
 )
 
 // Enum value maps for ActionType.
@@ -36,12 +37,14 @@ var (
 		1: "ACTION_OPERATION",
 		2: "ACTION_RESULT",
 		3: "ACTION_PING",
+		4: "ACTION_ERROR",
 	}
 	ActionType_value = map[string]int32{
 		"ACTION_UNSPECIFIED": 0,
 		"ACTION_OPERATION":   1,
 		"ACTION_RESULT":      2,
 		"ACTION_PING":        3,
+		"ACTION_ERROR":       4,
 	}
 )
 
@@ -122,6 +125,52 @@ func (x OperationSign) Number() protoreflect.EnumNumber {
 // Deprecated: Use OperationSign.Descriptor instead.
 func (OperationSign) EnumDescriptor() ([]byte, []int) {
 	return file_toolbox_proto_rawDescGZIP(), []int{0, 0}
+}
+
+type ErrErrorType int32
+
+const (
+	Err_ERROR ErrErrorType = 0
+	Err_PANIC ErrErrorType = 1
+)
+
+// Enum value maps for ErrErrorType.
+var (
+	ErrErrorType_name = map[int32]string{
+		0: "ERROR",
+		1: "PANIC",
+	}
+	ErrErrorType_value = map[string]int32{
+		"ERROR": 0,
+		"PANIC": 1,
+	}
+)
+
+func (x ErrErrorType) Enum() *ErrErrorType {
+	p := new(ErrErrorType)
+	*p = x
+	return p
+}
+
+func (x ErrErrorType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ErrErrorType) Descriptor() protoreflect.EnumDescriptor {
+	return file_toolbox_proto_enumTypes[2].Descriptor()
+}
+
+func (ErrErrorType) Type() protoreflect.EnumType {
+	return &file_toolbox_proto_enumTypes[2]
+}
+
+func (x ErrErrorType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ErrErrorType.Descriptor instead.
+func (ErrErrorType) EnumDescriptor() ([]byte, []int) {
+	return file_toolbox_proto_rawDescGZIP(), []int{3, 0}
 }
 
 type Operation struct {
@@ -281,6 +330,53 @@ func (x *Ping) GetMessage() string {
 	return ""
 }
 
+type Err struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Error ErrErrorType `protobuf:"varint,1,opt,name=error,proto3,enum=ErrErrorType" json:"error,omitempty"`
+}
+
+func (x *Err) Reset() {
+	*x = Err{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_toolbox_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Err) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Err) ProtoMessage() {}
+
+func (x *Err) ProtoReflect() protoreflect.Message {
+	mi := &file_toolbox_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Err.ProtoReflect.Descriptor instead.
+func (*Err) Descriptor() ([]byte, []int) {
+	return file_toolbox_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Err) GetError() ErrErrorType {
+	if x != nil {
+		return x.Error
+	}
+	return Err_ERROR
+}
+
 var File_toolbox_proto protoreflect.FileDescriptor
 
 var file_toolbox_proto_rawDesc = []byte{
@@ -297,14 +393,20 @@ var file_toolbox_proto_rawDesc = []byte{
 	0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75,
 	0x6c, 0x74, 0x22, 0x20, 0x0a, 0x04, 0x70, 0x69, 0x6e, 0x67, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65,
 	0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73,
-	0x73, 0x61, 0x67, 0x65, 0x2a, 0x5e, 0x0a, 0x0a, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79,
+	0x73, 0x61, 0x67, 0x65, 0x22, 0x4e, 0x0a, 0x03, 0x45, 0x72, 0x72, 0x12, 0x24, 0x0a, 0x05, 0x65,
+	0x72, 0x72, 0x6f, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0e, 0x2e, 0x45, 0x72, 0x72,
+	0x2e, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x54, 0x79, 0x70, 0x65, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f,
+	0x72, 0x22, 0x21, 0x0a, 0x09, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x54, 0x79, 0x70, 0x65, 0x12, 0x09,
+	0x0a, 0x05, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x00, 0x12, 0x09, 0x0a, 0x05, 0x50, 0x41, 0x4e,
+	0x49, 0x43, 0x10, 0x01, 0x2a, 0x70, 0x0a, 0x0a, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79,
 	0x70, 0x65, 0x12, 0x16, 0x0a, 0x12, 0x41, 0x43, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x55, 0x4e, 0x53,
 	0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x14, 0x0a, 0x10, 0x41, 0x43,
 	0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4f, 0x50, 0x45, 0x52, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x10, 0x01,
 	0x12, 0x11, 0x0a, 0x0d, 0x41, 0x43, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x52, 0x45, 0x53, 0x55, 0x4c,
 	0x54, 0x10, 0x02, 0x12, 0x0f, 0x0a, 0x0b, 0x41, 0x43, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x50, 0x49,
-	0x4e, 0x47, 0x10, 0x03, 0x42, 0x04, 0x5a, 0x02, 0x2e, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x4e, 0x47, 0x10, 0x03, 0x12, 0x10, 0x0a, 0x0c, 0x41, 0x43, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x45,
+	0x52, 0x52, 0x4f, 0x52, 0x10, 0x04, 0x42, 0x04, 0x5a, 0x02, 0x2e, 0x2f, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -319,22 +421,25 @@ func file_toolbox_proto_rawDescGZIP() []byte {
 	return file_toolbox_proto_rawDescData
 }
 
-var file_toolbox_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_toolbox_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_toolbox_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_toolbox_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_toolbox_proto_goTypes = []interface{}{
 	(ActionType)(0),    // 0: actionType
 	(OperationSign)(0), // 1: operation.sign
-	(*Operation)(nil),  // 2: operation
-	(*Result)(nil),     // 3: result
-	(*Ping)(nil),       // 4: ping
+	(ErrErrorType)(0),  // 2: Err.errorType
+	(*Operation)(nil),  // 3: operation
+	(*Result)(nil),     // 4: result
+	(*Ping)(nil),       // 5: ping
+	(*Err)(nil),        // 6: Err
 }
 var file_toolbox_proto_depIdxs = []int32{
 	1, // 0: operation.op:type_name -> operation.sign
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 1: Err.error:type_name -> Err.errorType
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_toolbox_proto_init() }
@@ -379,14 +484,26 @@ func file_toolbox_proto_init() {
 				return nil
 			}
 		}
+		file_toolbox_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Err); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_toolbox_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   3,
+			NumEnums:      3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
