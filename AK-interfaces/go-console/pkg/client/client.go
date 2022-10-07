@@ -65,7 +65,7 @@ func runBi(client proto.AdapterKitService_BiDirectionalAdapterClient, svc servic
 				fmt.Println("Error2: ", err)
 				return
 			}
-			svc.React(resp.Payload)
+			svc.React(resp.Payload, proto.ActionType(resp.Id))
 		}
 	}(client, svc)
 

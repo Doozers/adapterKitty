@@ -12,7 +12,7 @@ import (
 
 type CLISvc struct {
 	FormatPlug  func([]byte) (*proto.AdapterRequest, GrpcType, error)
-	ReactPlug   func([]byte) (string, error)
+	ReactPlug   func([]byte, proto.ActionType) (string, error)
 	DefaultType GrpcType
 }
 
@@ -28,9 +28,9 @@ func (svc *CLISvc) Format(msg []byte) (*proto.AdapterRequest, GrpcType, error) {
 	return &proto.AdapterRequest{Payload: msg}, svc.DefaultType, nil
 }
 
-func (svc *CLISvc) React(b []byte) (string, error) {
+func (svc *CLISvc) React(b []byte, a proto.ActionType) (string, error) {
 	if svc.ReactPlug != nil {
-		res, err := svc.ReactPlug(b)
+		res, err := svc.ReactPlug(b, a)
 		if err != nil {
 			return "", err
 		}
@@ -88,7 +88,7 @@ func (svc *CLISvc) UniSsListener(ctx context.Context, client proto.AdapterKitSer
 					fmt.Println("Error1 Uni: ", err)
 					return
 				}
-				fmt.Println(svc.React(resp.Payload))
+				fmt.Println(svc.React(resp.Payload, proto.ActionType(resp.Id)))
 			case Ss:
 				resp, err := client.ServerStreamingAdapter(ctx, res)
 				if err != nil {
@@ -105,7 +105,7 @@ func (svc *CLISvc) UniSsListener(ctx context.Context, client proto.AdapterKitSer
 							fmt.Println("Error23: ", err)
 							return
 						}
-						fmt.Println(svc.React(resp.Payload))
+						fmt.Println(svc.React(resp.Payload, proto.ActionType(resp.Id)))
 					}
 				}()
 			}
