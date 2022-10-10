@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/Doozers/adapterKitty/AK/proto"
 	pb "github.com/golang/protobuf/proto"
 )
@@ -35,7 +37,7 @@ func errorFunc(e proto.ErrErrorType) (*proto.AdapterResponse, error) {
 	}
 }
 
-func Uni(_ context.Context, req *proto.AdapterRequest) (*proto.AdapterResponse, error) {
+func Uni(_ context.Context, req *proto.AdapterRequest, _ *zap.Logger) (*proto.AdapterResponse, error) {
 	switch req.Id {
 	case int32(proto.ActionType_ACTION_OPERATION):
 		p := &proto.Operation{}
@@ -90,7 +92,7 @@ func Uni(_ context.Context, req *proto.AdapterRequest) (*proto.AdapterResponse, 
 	}
 }
 
-func Ss(req *proto.AdapterRequest, server proto.AdapterKitService_ServerStreamingAdapterServer) error {
+func Ss(req *proto.AdapterRequest, server proto.AdapterKitService_ServerStreamingAdapterServer, _ *zap.Logger) error {
 	switch req.Id {
 	case int32(proto.ActionType_ACTION_PING):
 		p := &proto.Ping{}
@@ -112,7 +114,7 @@ func Ss(req *proto.AdapterRequest, server proto.AdapterKitService_ServerStreamin
 	}
 }
 
-func Bi(s proto.AdapterKitService_BiDirectionalAdapterServer) error {
+func Bi(s proto.AdapterKitService_BiDirectionalAdapterServer, _gi *zap.Logger) error {
 	var count int
 	for {
 		req, err := s.Recv()

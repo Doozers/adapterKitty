@@ -10,7 +10,7 @@ import (
 func TestCheckArgs(t *testing.T) {
 	patient := []struct {
 		args     []string
-		opt      *checkOpt
+		opt      *CheckOpt
 		expected bool
 	}{
 		{[]string{"a", "b", "c"}, &CheckOpt{Min: 2, Max: 3}, true},
