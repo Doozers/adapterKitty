@@ -7,19 +7,23 @@ import (
 	"io"
 	"os"
 
+	"go.uber.org/zap"
+
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 )
 
 const DEFAULT_TYPE = Uni
 
 type CLISvc struct {
-	FormatPlug func([]byte) (*proto.AdapterRequest, GrpcType, error)
-	ReactPlug  func([]byte, int32) (string, error)
+	FormatPlug func([]byte, *zap.Logger) (*proto.AdapterRequest, GrpcType, error)
+	ReactPlug  func([]byte, int32, *zap.Logger) (string, error)
+
+	Logger *zap.Logger
 }
 
 func (svc *CLISvc) Format(msg []byte) (*proto.AdapterRequest, GrpcType, error) {
 	if svc.FormatPlug != nil {
-		res, t, err := svc.FormatPlug(msg)
+		res, t, err := svc.FormatPlug(msg, svc.Logger)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -32,7 +36,7 @@ func (svc *CLISvc) Format(msg []byte) (*proto.AdapterRequest, GrpcType, error) {
 
 func (svc *CLISvc) React(b []byte, a int32) (string, error) {
 	if svc.ReactPlug != nil {
-		res, err := svc.ReactPlug(b, a)
+		res, err := svc.ReactPlug(b, a, svc.Logger)
 		if err != nil {
 			return "", err
 		}
@@ -59,7 +63,7 @@ func (svc *CLISvc) Listener(ctx context.Context, client proto.AdapterKitServiceC
 		if len(input) > 0 {
 			res, t, err := svc.Format([]byte(input[:len(input)-1]))
 			if err != nil {
-				fmt.Println("Error1: ", err)
+				svc.Logger.Error("Listener", zap.Error(err))
 				return
 			}
 
@@ -67,7 +71,7 @@ func (svc *CLISvc) Listener(ctx context.Context, client proto.AdapterKitServiceC
 			case Uni:
 				resp, err := client.UniDirectionalAdapter(ctx, res)
 				if err != nil {
-					fmt.Println("Error1 Uni: ", err)
+					svc.Logger.Error("Listener Uni", zap.Error(err))
 					return
 				}
 				fmt.Println(svc.React(resp.Payload, resp.Id))
@@ -75,7 +79,7 @@ func (svc *CLISvc) Listener(ctx context.Context, client proto.AdapterKitServiceC
 			case Ss:
 				s, err := client.ServerStreamingAdapter(ctx, res)
 				if err != nil {
-					fmt.Println("Error1 Ss: ", err)
+					svc.Logger.Error("Listener Ss", zap.Error(err))
 					return
 				}
 				for {
@@ -84,7 +88,7 @@ func (svc *CLISvc) Listener(ctx context.Context, client proto.AdapterKitServiceC
 						break
 					}
 					if err != nil {
-						fmt.Println("Error23: ", err)
+						svc.Logger.Error("Listener Ss", zap.Error(err))
 						return
 					}
 					fmt.Println(svc.React(resp.Payload, resp.Id))
@@ -94,7 +98,7 @@ func (svc *CLISvc) Listener(ctx context.Context, client proto.AdapterKitServiceC
 				if !bi.running {
 					bi.stream, err = client.BiDirectionalAdapter(ctx)
 					if err != nil {
-						fmt.Println("Error1 Bi: ", err)
+						svc.Logger.Error("Listener Bi", zap.Error(err))
 						return
 					}
 
@@ -107,7 +111,7 @@ func (svc *CLISvc) Listener(ctx context.Context, client proto.AdapterKitServiceC
 								break
 							}
 							if err != nil {
-								fmt.Println("Error23: ", err)
+								svc.Logger.Error("Listener Bi", zap.Error(err))
 								return
 							}
 							fmt.Println(svc.React(resp.Payload, resp.Id))
@@ -119,7 +123,7 @@ func (svc *CLISvc) Listener(ctx context.Context, client proto.AdapterKitServiceC
 
 				if res != nil {
 					if err := bi.stream.Send(res); err != nil {
-						fmt.Println("Error1: ", err)
+						svc.Logger.Error("Listener", zap.Error(err))
 						return
 					}
 				} else {

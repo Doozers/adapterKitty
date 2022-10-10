@@ -1,10 +1,14 @@
 package main
 
 import (
+	"flag"
+	"log"
+
+	"go.uber.org/zap"
+	"moul.io/zapconfig"
+
 	"github.com/Doozers/adapterKitty/AK/pkg/example"
 	"github.com/Doozers/adapterKitty/AK/pkg/server"
-
-	"flag"
 )
 
 var opts = server.Opts{}
@@ -14,15 +18,34 @@ func init() {
 	flag.StringVar(&opts.Addr, "addr", "127.0.0.1", "Address to listen on")
 	flag.StringVar(&opts.GRPCPort, "grpc", ":9314", "gRPC listen port")
 	flag.StringVar(&opts.HTTPPort, "http", ":9315", "HTTP listen port")
+	flag.BoolVar(&opts.Verbose, "v", false, "Verbose mode")
 	flag.Parse()
 }
 
 func main() {
+	logger, err := newLogger(opts.Verbose)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	if err := server.RunGRPCServers(&server.AdapterServ{
 		BiAction:  example.ActionBi,
 		UniAction: example.ActionUni,
 		SsAction:  example.SsAction,
+		Logger:    logger,
 	}, opts); err != nil {
 		panic(err)
 	}
+}
+
+func newLogger(verbose bool) (*zap.Logger, error) {
+	config := zapconfig.Configurator{}
+
+	if verbose {
+		config.SetLevel(zap.DebugLevel)
+	} else {
+		config.SetLevel(zap.InfoLevel)
+	}
+
+	return config.Build()
 }

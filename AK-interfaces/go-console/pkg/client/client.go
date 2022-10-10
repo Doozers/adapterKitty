@@ -14,6 +14,7 @@ import (
 type Opts struct {
 	Addr     string
 	GRPCPort string
+	Verbose  bool
 }
 
 // Connect to the server and chose the grpc service to use

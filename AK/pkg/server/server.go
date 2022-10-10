@@ -6,7 +6,11 @@ import (
 	"net"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"github.com/Doozers/adapterKitty/AK/proto"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 
 	"google.golang.org/grpc"
 
@@ -18,18 +22,37 @@ type Opts struct {
 	Addr      string
 	GRPCPort  string
 	HTTPPort  string
+	Verbose   bool
 }
 
-func RunGRPCServers(service proto.AdapterKitServiceServer, opts Opts) error {
+type Server interface {
+	proto.AdapterKitServiceServer
+	GetLogger() *zap.Logger
+}
+
+func RunGRPCServers(service Server, opts Opts) error {
+	logger := service.GetLogger()
+	grpcLogger := logger.Named("grpc")
+	grpc_zap.ReplaceGrpcLoggerV2(grpcLogger)
+
+	serverStreamOpts := []grpc.StreamServerInterceptor{
+		grpc_zap.StreamServerInterceptor(grpcLogger),
+	}
+	serverUnaryOpts := []grpc.UnaryServerInterceptor{
+		grpc_zap.UnaryServerInterceptor(grpcLogger),
+	}
+
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s%s", opts.Addr, opts.GRPCPort))
 	if err != nil {
 		return err
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(serverStreamOpts...)),
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(serverUnaryOpts...)),
+	)
 
 	proto.RegisterAdapterKitServiceServer(grpcServer, service)
-
-	fmt.Println("Server started on: ", lis.Addr())
+	logger.Info("Server started on: ", zap.String("addr: ", lis.Addr().String()))
 
 	// expose http server to serve grpc-web requests
 	if opts.ExposeWeb {
@@ -47,6 +70,7 @@ func RunGRPCServers(service proto.AdapterKitServiceServer, opts Opts) error {
 			Addr:    fmt.Sprintf("%s%s", opts.Addr, opts.HTTPPort),
 		}
 
+		logger.Info("gRPC web server started on: ", zap.String("addr: ", srv.Addr))
 		return srv.ListenAndServe()
 	} else {
 		return grpcServer.Serve(lis)

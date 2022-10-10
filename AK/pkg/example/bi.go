@@ -1,14 +1,15 @@
 package example
 
 import (
-	"fmt"
 	"io"
+
+	"go.uber.org/zap"
 
 	"github.com/Doozers/adapterKitty/AK/proto"
 )
 
 // ActionBi save request and retrieve it when payload is empty
-func ActionBi(s proto.AdapterKitService_BiDirectionalAdapterServer) error {
+func ActionBi(s proto.AdapterKitService_BiDirectionalAdapterServer, logger *zap.Logger) error {
 	var keep [][]byte
 	for {
 		req, err := s.Recv()
@@ -16,21 +17,21 @@ func ActionBi(s proto.AdapterKitService_BiDirectionalAdapterServer) error {
 			for _, v := range keep {
 				err := s.Send(&proto.AdapterResponse{Payload: []byte("Retrieve from keep: " + string(v))})
 				if err != nil {
-					fmt.Println("Error send: ", err)
+					logger.Error("ActionBi: ", zap.Error(err))
 					return err
 				}
-				fmt.Println("log : Retrieve from keep: ", string(v))
+				logger.Info("Retrieve from keep: ", zap.ByteString("kept", v))
 			}
-			fmt.Println("log : All message retrieved")
+			logger.Info("All message retrieved")
 			return nil
 		}
 
 		if err != nil {
-			fmt.Println("Error: ", err)
+			logger.Error("ActionBi: ", zap.Error(err))
 			return err
 		}
 
-		fmt.Println("log : Received message: ", string(req.Payload))
+		logger.Info("Received message: ", zap.ByteString("", req.Payload))
 		keep = append(keep, req.Payload)
 	}
 }

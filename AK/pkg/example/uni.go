@@ -2,13 +2,13 @@ package example
 
 import (
 	"context"
-	"fmt"
+
+	"go.uber.org/zap"
 
 	"github.com/Doozers/adapterKitty/AK/proto"
 )
 
 // ActionUni send back the request
-func ActionUni(ctx context.Context, req *proto.AdapterRequest) (*proto.AdapterResponse, error) {
-	fmt.Println("log : ActionUni")
+func ActionUni(ctx context.Context, req *proto.AdapterRequest, logger *zap.Logger) (*proto.AdapterResponse, error) {
 	return &proto.AdapterResponse{Payload: []byte("boomerang: " + string(req.Payload))}, nil
 }
