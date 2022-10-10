@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/utils"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
@@ -117,7 +119,7 @@ func strFunc(args []string) (*proto.AdapterRequest, error) {
 	}, nil
 }
 
-func FormatToolbox(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
+func FormatToolbox(b []byte, logger *zap.Logger) (*proto.AdapterRequest, services.GrpcType, error) {
 	args := strings.Split(strings.TrimSpace(string(b)), " ")
 
 	switch args[0] {
@@ -188,7 +190,7 @@ func FormatToolbox(b []byte) (*proto.AdapterRequest, services.GrpcType, error) {
 
 }
 
-func ReactToolbox(b []byte, T int32) (string, error) {
+func ReactToolbox(b []byte, T int32, logger *zap.Logger) (string, error) {
 	t := proto.ActionType(T)
 
 	if len(b) == 0 {

@@ -10,17 +10,17 @@ import (
 func TestCheckArgs(t *testing.T) {
 	patient := []struct {
 		args     []string
-		opt      *checkOpt
+		opt      *CheckOpt
 		expected bool
 	}{
-		{[]string{"a", "b", "c"}, &checkOpt{min: 2, max: 3}, true},
-		{[]string{"a", "b", "c"}, &checkOpt{min: 2}, true},
-		{[]string{"a", "b", "c"}, &checkOpt{min: 2, max: 2}, false},
-		{[]string{"a", "b", "c"}, &checkOpt{min: 4}, false},
-		{[]string{"a", "b", "c"}, &checkOpt{min: 4, max: 5}, false},
-		{[]string{"a", "b", "c"}, &checkOpt{max: 2}, false},
-		{[]string{"a", "b", "c"}, &checkOpt{max: 4}, true},
-		{[]string{"a", "b", "c"}, &checkOpt{max: 4, min: 2}, true},
+		{[]string{"a", "b", "c"}, &CheckOpt{Min: 2, Max: 3}, true},
+		{[]string{"a", "b", "c"}, &CheckOpt{Min: 2}, true},
+		{[]string{"a", "b", "c"}, &CheckOpt{Min: 2, Max: 2}, false},
+		{[]string{"a", "b", "c"}, &CheckOpt{Min: 4}, false},
+		{[]string{"a", "b", "c"}, &CheckOpt{Min: 4, Max: 5}, false},
+		{[]string{"a", "b", "c"}, &CheckOpt{Max: 2}, false},
+		{[]string{"a", "b", "c"}, &CheckOpt{Max: 4}, true},
+		{[]string{"a", "b", "c"}, &CheckOpt{Max: 4, Min: 2}, true},
 	}
 
 	for _, p := range patient {
