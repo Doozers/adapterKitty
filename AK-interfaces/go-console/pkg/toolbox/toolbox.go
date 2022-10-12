@@ -156,10 +156,7 @@ func definePipeline() *pipe.Pipeline {
 		}}).Pipe(),
 	}
 
-	root.Pipes = append(root.Pipes, ope)
-	root.Pipes = append(root.Pipes, ping)
-	root.Pipes = append(root.Pipes, errorPipe)
-	root.Pipes = append(root.Pipes, bi)
+	root.Pipes = append(root.Pipes, ope, ping, errorPipe, bi)
 	root.Pipes = append(root.Pipes, other...)
 
 	return root
