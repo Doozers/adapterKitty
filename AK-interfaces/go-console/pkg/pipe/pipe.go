@@ -63,11 +63,11 @@ func (p *PipeEnd) check(s []string) bool {
 	return utils.CheckArgs(s, p.Check)
 }
 
-func (p *PipeEnd) Follow(s []string) (*proto.AdapterRequest, services.GrpcType, error) {
-	if !p.check(s) {
+func (p *PipeEnd) Follow(a []string) (*proto.AdapterRequest, services.GrpcType, error) {
+	if !p.check(a) {
 		return nil, 0, nil
 	}
-	return p.F(s)
+	return p.F(a)
 }
 
 func (p *PipeEnd) Pipe() *Pipe {
