@@ -7,69 +7,77 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/pipe"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/services"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/pkg/utils"
 	"github.com/Doozers/adapterKitty/AK-interfaces/go-console/proto"
 	pb "github.com/golang/protobuf/proto"
 )
 
-func strToOp(s string) (proto.OperationSign, error) {
-	switch s {
-	case "ADD":
-		return proto.Operation_PLUS, nil
-	case "SUB":
-		return proto.Operation_MINUS, nil
-	case "MUL":
-		return proto.Operation_MULTIPLY, nil
-	case "DIV":
-		return proto.Operation_DIVIDE, nil
+func operation(op proto.OperationSign) func(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+	return func(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+		nb1, err := strconv.Atoi(args[0])
+		if err != nil {
+			return nil, 0, err
+		}
+		nb2, err := strconv.Atoi(args[1])
+		if err != nil {
+			return nil, 0, err
+		}
+
+		scheme := &proto.Operation{
+			Op: op,
+			A:  int32(nb1),
+			B:  int32(nb2),
+		}
+		serialized, err := pb.Marshal(scheme)
+		if err != nil {
+			return nil, 0, err
+		}
+		return &proto.AdapterRequest{
+			Payload: serialized,
+			Id:      int32(proto.ActionType_ACTION_OPERATION),
+		}, services.Uni, nil
 	}
-	return 0, fmt.Errorf("unknown operation")
 }
 
-func operation(args []string) (*proto.AdapterRequest, error) {
-	nb1, err := strconv.Atoi(args[1])
-	if err != nil {
-		return nil, err
-	}
-	nb2, err := strconv.Atoi(args[2])
-	if err != nil {
-		return nil, err
-	}
+func ping(method services.GrpcType) func([]string) (*proto.AdapterRequest, services.GrpcType, error) {
+	return func(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+		scheme := &proto.Ping{Message: strings.Join(args, " ")}
 
-	sign, err := strToOp(args[0])
-	if err != nil {
-		return nil, err
-	}
+		serialized, err := pb.Marshal(scheme)
+		if err != nil {
+			return nil, 0, err
+		}
 
-	scheme := &proto.Operation{
-		Op: sign,
-		A:  int32(nb1),
-		B:  int32(nb2),
+		return &proto.AdapterRequest{
+			Payload: serialized,
+			Id:      int32(proto.ActionType_ACTION_PING),
+		}, method, nil
 	}
-	serialized, err := pb.Marshal(scheme)
-	if err != nil {
-		return nil, err
-	}
-	return &proto.AdapterRequest{
-		Payload: serialized,
-		Id:      int32(proto.ActionType_ACTION_OPERATION),
-	}, nil
 }
 
-func ping(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
-	scheme := &proto.Ping{Message: strings.Join(args[2:], " ")}
+func errorFunc(errorType proto.ErrErrorType) func([]string) (*proto.AdapterRequest, services.GrpcType, error) {
+	return func(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+		scheme := &proto.Err{Error: errorType}
 
-	var grpcMethod services.GrpcType
+		serialized, err := pb.Marshal(scheme)
+		if err != nil {
+			return nil, 0, err
+		}
 
-	switch args[1] {
-	case "REPEAT":
-		grpcMethod = services.Ss
-	case "ONCE":
-		grpcMethod = services.Uni
-	default:
-		return nil, 0, fmt.Errorf("unknown ping method")
+		return &proto.AdapterRequest{
+			Payload: serialized,
+			Id:      int32(proto.ActionType_ACTION_ERROR),
+		}, services.Uni, nil
 	}
+}
+
+func strFunc(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+	if len(args) < 1 {
+		return nil, services.Bi, nil
+	}
+	scheme := &proto.Str{Msg: strings.Join(args, " ")}
 
 	serialized, err := pb.Marshal(scheme)
 	if err != nil {
@@ -78,116 +86,88 @@ func ping(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
 
 	return &proto.AdapterRequest{
 		Payload: serialized,
-		Id:      int32(proto.ActionType_ACTION_PING),
-	}, grpcMethod, nil
-}
-
-func errorFunc(args []string) (*proto.AdapterRequest, error) {
-	var errorType proto.ErrErrorType
-	if len(args) > 1 && args[1] == "PANIC" {
-		errorType = proto.Err_PANIC
-	} else {
-		errorType = proto.Err_ERROR
-	}
-	scheme := &proto.Err{Error: errorType}
-
-	serialized, err := pb.Marshal(scheme)
-	if err != nil {
-		return nil, err
-	}
-
-	return &proto.AdapterRequest{
-		Payload: serialized,
-		Id:      int32(proto.ActionType_ACTION_ERROR),
-	}, nil
-}
-
-func strFunc(args []string) (*proto.AdapterRequest, error) {
-	if len(args) < 2 {
-		return nil, nil
-	}
-	scheme := &proto.Str{Msg: strings.Join(args[1:], " ")}
-
-	serialized, err := pb.Marshal(scheme)
-	if err != nil {
-		return nil, err
-	}
-
-	return &proto.AdapterRequest{
-		Payload: serialized,
 		Id:      int32(proto.ActionType_ACTION_STR),
-	}, nil
+	}, services.Bi, nil
+}
+
+func definePipeline() *pipe.Pipeline {
+	root := &pipe.Pipeline{}
+
+	// operation
+	ope := (&pipe.PipeWay{
+		ID:    "OPE",
+		Check: &utils.CheckOpt{Min: 3, Max: 3},
+		Branch: []*pipe.Pipe{
+			(&pipe.PipeEnd{ID: "ADD", F: operation(proto.Operation_PLUS)}).Pipe(),
+			(&pipe.PipeEnd{ID: "SUB", F: operation(proto.Operation_MINUS)}).Pipe(),
+			(&pipe.PipeEnd{ID: "MUL", F: operation(proto.Operation_MULTIPLY)}).Pipe(),
+			(&pipe.PipeEnd{ID: "DIV", F: operation(proto.Operation_DIVIDE)}).Pipe(),
+		}}).Pipe()
+
+	// ping
+	ping := (&pipe.PipeWay{
+		ID:    "PING",
+		Check: &utils.CheckOpt{Min: 2},
+		Branch: []*pipe.Pipe{
+			(&pipe.PipeEnd{ID: "REPEAT", F: ping(services.Ss)}).Pipe(),
+			(&pipe.PipeEnd{ID: "ONCE", F: ping(services.Uni)}).Pipe(),
+		}}).Pipe()
+
+	// error
+	errorPipe := (&pipe.PipeWay{
+		ID:    "ERROR",
+		Check: &utils.CheckOpt{Min: 1, Max: 1},
+		Branch: []*pipe.Pipe{
+			(&pipe.PipeEnd{ID: "BASIC", F: errorFunc(proto.Err_ERROR)}).Pipe(),
+			(&pipe.PipeEnd{ID: "PANIC", F: errorFunc(proto.Err_PANIC)}).Pipe(),
+		}}).Pipe()
+
+	// BI
+	bi := (&pipe.PipeEnd{ID: "BI", F: strFunc}).Pipe()
+
+	// other
+	other := []*pipe.Pipe{
+		(&pipe.PipeEnd{ID: "DOUBLE", Check: &utils.CheckOpt{Min: 1, Max: 1}, F: func(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+			nb, err := strconv.Atoi(args[0])
+			if err != nil {
+				return nil, 0, err
+			}
+
+			scheme := &proto.Operation{
+				Op: proto.Operation_MULTIPLY,
+				A:  int32(nb),
+				B:  2,
+			}
+			serialized, err := pb.Marshal(scheme)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			return &proto.AdapterRequest{
+				Id:      int32(proto.ActionType_ACTION_OPERATION),
+				Payload: serialized,
+			}, services.Uni, nil
+		}}).Pipe(),
+		(&pipe.PipeEnd{ID: "RAND", Check: &utils.CheckOpt{Min: 0, Max: 0}, F: func(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+			return &proto.AdapterRequest{Id: int32(proto.ActionType_ACTION_RANDOM)}, services.Uni, nil
+		}}).Pipe(),
+		(&pipe.PipeEnd{ID: "NORETURN", Check: &utils.CheckOpt{Min: 0, Max: 0}, F: func(args []string) (*proto.AdapterRequest, services.GrpcType, error) {
+			return &proto.AdapterRequest{Id: int32(proto.ActionType_ACTION_NORETURN)}, services.Uni, nil
+		}}).Pipe(),
+	}
+
+	root.Pipes = append(root.Pipes, ope)
+	root.Pipes = append(root.Pipes, ping)
+	root.Pipes = append(root.Pipes, errorPipe)
+	root.Pipes = append(root.Pipes, bi)
+	root.Pipes = append(root.Pipes, other...)
+
+	return root
 }
 
 func FormatToolbox(b []byte, logger *zap.Logger) (*proto.AdapterRequest, services.GrpcType, error) {
-	args := strings.Split(strings.TrimSpace(string(b)), " ")
-
-	switch args[0] {
-	case "ADD", "SUB", "MUL", "DIV":
-		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 3, Max: 3}) {
-			return nil, 0, fmt.Errorf("invalid args")
-		}
-
-		res, err := operation(args)
-		if err != nil {
-			return nil, 0, err
-		}
-		return res, services.Uni, nil
-
-	case "PING":
-		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 3}) {
-			return nil, 0, fmt.Errorf("invalid args")
-		}
-
-		res, grpcMethod, err := ping(args)
-		if err != nil {
-			return nil, 0, err
-		}
-		return res, grpcMethod, nil
-
-	case "ERROR":
-		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 1}) {
-			return nil, 0, fmt.Errorf("invalid args")
-		}
-
-		res, err := errorFunc(args)
-		if err != nil {
-			return nil, 0, err
-		}
-		return res, services.Uni, nil
-
-	case "BI":
-		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 1}) {
-			return nil, 0, fmt.Errorf("invalid args")
-		}
-
-		res, err := strFunc(args)
-		if err != nil {
-			return nil, 0, err
-		}
-		return res, services.Bi, nil
-
-	case "DOUBLE":
-		if !utils.CheckArgs(args, &utils.CheckOpt{Min: 2, Max: 2}) {
-			return nil, 0, fmt.Errorf("invalid args")
-		}
-
-		res, err := operation([]string{"MUL", args[1], "2"})
-		if err != nil {
-			return nil, 0, err
-		}
-		return res, services.Uni, nil
-
-	case "RAND":
-		return &proto.AdapterRequest{Id: int32(proto.ActionType_ACTION_RANDOM)}, services.Uni, nil
-
-	case "NORETURN":
-		return &proto.AdapterRequest{Id: int32(proto.ActionType_ACTION_NORETURN)}, services.Uni, nil
-
-	default:
-		return &proto.AdapterRequest{Payload: b}, services.Uni, nil
-	}
-
+	root := definePipeline()
+	return root.Piping(string(b))
 }
 
 func ReactToolbox(b []byte, T int32, logger *zap.Logger) (string, error) {
